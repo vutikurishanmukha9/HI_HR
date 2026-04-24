@@ -142,13 +142,13 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ initialTemplate, onCompos
             {/* Header */}
             <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-                    style={{ background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%)', border: '1px solid rgba(236, 72, 153, 0.3)' }}>
-                    <svg className="w-7 h-7 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    style={{ background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(249, 115, 22, 0.15))', border: '1px solid rgba(244, 63, 94, 0.25)' }}>
+                    <svg className="w-7 h-7" style={{ color: '#fb7185' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Compose Your Email</h2>
-                <p className="text-gray-400">Craft your message with personalization tags</p>
+                <h2 className="text-2xl font-bold mb-2" style={{ color: '#f1f5f9' }}>Compose Your Email</h2>
+                <p style={{ color: '#94a3b8', fontSize: '0.9375rem' }}>Craft your message with personalization tags</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -266,29 +266,29 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ initialTemplate, onCompos
 
                 {/* Sidebar */}
                 <aside>
-                    <div className="rounded-xl p-5" style={{ background: 'rgba(102, 126, 234, 0.1)', border: '1px solid rgba(102, 126, 234, 0.2)' }}>
-                        <h4 className="font-semibold text-white flex items-center gap-2 mb-2">
-                            <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="rounded-xl p-5" style={{ background: 'rgba(244, 63, 94, 0.06)', border: '1px solid rgba(244, 63, 94, 0.15)' }}>
+                        <h4 className="font-semibold flex items-center gap-2 mb-2" style={{ color: '#f1f5f9' }}>
+                            <svg className="w-5 h-5" style={{ color: '#fb7185' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                             </svg>
                             Personalization Tags
                         </h4>
-                        <p className="text-sm text-gray-400 mb-4">Click to copy, then paste into your email</p>
+                        <p className="text-sm mb-4" style={{ color: '#94a3b8' }}>Click to copy, then paste into your email</p>
                         <div className="space-y-2">
                             {personalizationTags.map(tag => (
                                 <button
                                     key={tag}
                                     onClick={() => copyToClipboard(tag)}
-                                    className="w-full text-left px-4 py-3 text-sm rounded-lg transition-all duration-300 hover:scale-105 flex items-center justify-between"
+                                    className="w-full text-left px-4 py-3 text-sm rounded-lg transition-all duration-300 hover:scale-[1.02] flex items-center justify-between"
                                     style={{
-                                        background: copiedTag === tag ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.05)',
-                                        border: copiedTag === tag ? '1px solid rgba(16, 185, 129, 0.5)' : '1px solid rgba(255,255,255,0.1)',
-                                        color: copiedTag === tag ? '#10b981' : '#a78bfa'
+                                        background: copiedTag === tag ? 'rgba(20, 184, 166, 0.15)' : 'rgba(148, 163, 184, 0.06)',
+                                        border: copiedTag === tag ? '1px solid rgba(20, 184, 166, 0.4)' : '1px solid rgba(148, 163, 184, 0.12)',
+                                        color: copiedTag === tag ? '#14b8a6' : '#fb7185'
                                     }}
                                 >
                                     <span>{tag}</span>
                                     {copiedTag === tag && (
-                                        <span className="text-xs text-emerald-400 flex items-center gap-1">
+                                        <span className="text-xs flex items-center gap-1" style={{ color: '#14b8a6' }}>
                                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                             </svg>
@@ -307,8 +307,8 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ initialTemplate, onCompos
                 <button
                     type="button"
                     onClick={onBack}
-                    className="px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:bg-white/10"
-                    style={{ border: '1px solid rgba(255,255,255,0.1)', color: '#a0aec0' }}
+                    className="px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300"
+                    style={{ border: '1px solid rgba(148, 163, 184, 0.15)', color: '#94a3b8' }}
                 >
                     ← Back
                 </button>
@@ -316,10 +316,10 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ initialTemplate, onCompos
                     type="submit"
                     onClick={handleSubmit}
                     disabled={!subject.trim() || !body.trim()}
-                    className="px-8 py-3 rounded-xl font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+                    className="px-8 py-3 rounded-xl font-semibold text-white text-sm transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
                     style={{
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        boxShadow: (!subject.trim() || !body.trim()) ? 'none' : '0 4px 20px rgba(102, 126, 234, 0.4)'
+                        background: 'linear-gradient(135deg, #f43f5e 0%, #f97316 100%)',
+                        boxShadow: (!subject.trim() || !body.trim()) ? 'none' : '0 4px 20px rgba(244, 63, 94, 0.35)'
                     }}
                 >
                     Continue →

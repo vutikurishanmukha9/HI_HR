@@ -13,10 +13,13 @@ const App: React.FC = () => {
   // Show loading screen while checking auth
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0c0e1a' }}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #6366f1, #a855f7)' }}>
+            <span className="text-white font-extrabold text-xl" style={{ fontFamily: "'Outfit', sans-serif" }}>Hi</span>
+          </div>
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-transparent mx-auto mb-3" style={{ borderTopColor: '#6366f1' }}></div>
+          <p className="text-sm" style={{ color: '#94a3b8' }}>Loading HiHR...</p>
         </div>
       </div>
     );

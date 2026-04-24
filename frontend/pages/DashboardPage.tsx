@@ -93,30 +93,27 @@ const DashboardPage: React.FC = () => {
 
             <div className="max-w-4xl mx-auto">
                 {/* Premium Header */}
-                <div className="glass-card p-6 mb-6">
+                <div className="glass-card p-5 sm:p-6 mb-6">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center shadow-lg">
-                                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
+                        <div className="flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg"
+                                style={{ background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%)' }}>
+                                <span className="text-white font-extrabold text-lg" style={{ fontFamily: "'Outfit', sans-serif" }}>Hi</span>
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold" style={{ fontFamily: "'Playfair Display', serif", background: 'linear-gradient(135deg, #a855f7 0%, #3b82f6 50%, #06b6d4 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                                    HiHR
-                                </h1>
-                                <p className="text-gray-400 text-sm">Smart HR Email Outreach</p>
+                                <h1 className="text-2xl font-extrabold text-brand">HiHR</h1>
+                                <p className="text-xs" style={{ color: '#64748b' }}>Smart HR Email Outreach</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4 w-full sm:w-auto">
+                        <div className="flex items-center gap-3 w-full sm:w-auto">
                             <div className="text-right flex-1 sm:flex-none">
-                                <p className="text-xs text-gray-500">Logged in as</p>
-                                <p className="font-medium text-white truncate max-w-[150px] sm:max-w-none">{user?.email}</p>
+                                <p className="text-[10px] uppercase tracking-wider" style={{ color: '#64748b' }}>Logged in as</p>
+                                <p className="text-sm font-medium truncate max-w-[150px] sm:max-w-none" style={{ color: '#f1f5f9' }}>{user?.email}</p>
                             </div>
                             <button
                                 onClick={logout}
-                                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-white/10"
-                                style={{ border: '1px solid rgba(255,255,255,0.1)', color: '#a0aec0' }}
+                                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
+                                style={{ border: '1px solid rgba(148, 163, 184, 0.15)', color: '#94a3b8' }}
                             >
                                 Logout
                             </button>
@@ -231,12 +228,13 @@ const DashboardPage: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="text-center mt-8 text-gray-600 text-sm">
+                <div className="text-center mt-8 text-xs" style={{ color: '#475569' }}>
                     <p>
-                        Powered by HiHR | Your credentials are encrypted and secure
+                        Powered by <span className="font-semibold" style={{ color: '#94a3b8' }}>HiHR</span> · Credentials encrypted end-to-end
                     </p>
-                    <p className="mt-1">
-                        Backend: <span className="text-green-500">●</span> Connected
+                    <p className="mt-1 flex items-center justify-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#14b8a6' }}></span>
+                        <span>Backend connected</span>
                     </p>
                 </div>
             </div>

@@ -128,21 +128,21 @@ const RecipientUploader: React.FC<RecipientUploaderProps> = ({ onUpload, onBack 
       {/* Header */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-          style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-          <svg className="w-7 h-7 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(20, 184, 166, 0.15))', border: '1px solid rgba(20, 184, 166, 0.25)' }}>
+          <svg className="w-7 h-7" style={{ color: '#34d399' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Upload Recipients</h2>
-        <p className="text-gray-400">Drag and drop or select an Excel file with your contacts</p>
+        <h2 className="text-2xl font-bold mb-2" style={{ color: '#f1f5f9' }}>Upload Recipients</h2>
+        <p style={{ color: '#94a3b8', fontSize: '0.9375rem' }}>Drag and drop or select an Excel file with your contacts</p>
       </div>
 
       {/* Drop Zone */}
       <div
         className={`relative p-8 rounded-2xl text-center cursor-pointer transition-all duration-300 ${isDragging ? 'scale-105' : ''}`}
         style={{
-          background: isDragging ? 'rgba(102, 126, 234, 0.1)' : 'rgba(255,255,255,0.02)',
-          border: isDragging ? '2px dashed #667eea' : '2px dashed rgba(255,255,255,0.1)',
+          background: isDragging ? 'rgba(20, 184, 166, 0.08)' : 'rgba(148, 163, 184, 0.03)',
+          border: isDragging ? '2px dashed #14b8a6' : '2px dashed rgba(148, 163, 184, 0.15)',
         }}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
@@ -152,21 +152,21 @@ const RecipientUploader: React.FC<RecipientUploaderProps> = ({ onUpload, onBack 
       >
         <div className="flex flex-col items-center gap-4">
           {loading ? (
-            <div className="w-12 h-12 border-3 border-purple-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-12 h-12 border-3 rounded-full animate-spin" style={{ borderColor: '#14b8a6', borderTopColor: 'transparent' }} />
           ) : (
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-              style={{ background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%)' }}>
-              <svg className="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              style={{ background: 'linear-gradient(135deg, rgba(20, 184, 166, 0.15), rgba(16, 185, 129, 0.15))' }}>
+              <svg className="w-8 h-8" style={{ color: '#34d399' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
             </div>
           )}
 
           <div>
-            <p className="text-white font-medium mb-1">
+            <p className="font-medium mb-1" style={{ color: '#f1f5f9' }}>
               {fileName ? `📄 ${fileName}` : 'Drop your Excel file here'}
             </p>
-            <p className="text-gray-500 text-sm">or click to browse • XLSX, XLS up to 5MB</p>
+            <p className="text-sm" style={{ color: '#64748b' }}>or click to browse • XLSX, XLS up to 5MB</p>
           </div>
 
           <input id="file-upload" type="file" className="sr-only" onChange={handleFileChange} accept=".xlsx,.xls" />
@@ -175,8 +175,8 @@ const RecipientUploader: React.FC<RecipientUploaderProps> = ({ onUpload, onBack 
 
       {/* Messages */}
       {error && (
-        <div className="mt-4 p-4 rounded-xl" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-          <p className="text-red-400 text-sm flex items-center gap-2">
+        <div className="mt-4 p-4 rounded-xl" style={{ background: 'rgba(244, 63, 94, 0.08)', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
+          <p className="text-sm flex items-center gap-2" style={{ color: '#fb7185' }}>
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
             </svg>
@@ -187,7 +187,7 @@ const RecipientUploader: React.FC<RecipientUploaderProps> = ({ onUpload, onBack 
 
       {warning && (
         <div className="mt-4 p-4 rounded-xl" style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)' }}>
-          <p className="text-amber-400 text-sm flex items-center gap-2">
+          <p className="text-sm flex items-center gap-2" style={{ color: '#fbbf24' }}>
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
@@ -206,24 +206,24 @@ const RecipientUploader: React.FC<RecipientUploaderProps> = ({ onUpload, onBack 
             </h3>
           </div>
 
-          <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(148, 163, 184, 0.03)', border: '1px solid rgba(148, 163, 184, 0.12)' }}>
             <div className="max-h-64 overflow-auto">
               <table className="w-full">
                 <thead>
-                  <tr style={{ background: 'rgba(255,255,255,0.05)' }}>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Email</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Company</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Title</th>
+                  <tr style={{ background: 'rgba(148, 163, 184, 0.06)' }}>
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase" style={{ color: '#64748b', letterSpacing: '0.08em' }}>Name</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase" style={{ color: '#64748b', letterSpacing: '0.08em' }}>Email</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase" style={{ color: '#64748b', letterSpacing: '0.08em' }}>Company</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-semibold uppercase" style={{ color: '#64748b', letterSpacing: '0.08em' }}>Title</th>
                   </tr>
                 </thead>
                 <tbody>
                   {recipients.slice(0, 10).map((recipient, index) => (
-                    <tr key={index} className="border-t" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
-                      <td className="px-4 py-3 text-sm text-white font-medium">{recipient.fullName}</td>
-                      <td className="px-4 py-3 text-sm text-gray-400">{recipient.email}</td>
-                      <td className="px-4 py-3 text-sm text-gray-400">{recipient.companyName}</td>
-                      <td className="px-4 py-3 text-sm text-gray-500">{recipient.jobTitle || '—'}</td>
+                    <tr key={index} className="border-t" style={{ borderColor: 'rgba(148, 163, 184, 0.08)' }}>
+                      <td className="px-4 py-3 text-sm font-medium" style={{ color: '#f1f5f9' }}>{recipient.fullName}</td>
+                      <td className="px-4 py-3 text-sm" style={{ color: '#94a3b8' }}>{recipient.email}</td>
+                      <td className="px-4 py-3 text-sm" style={{ color: '#94a3b8' }}>{recipient.companyName}</td>
+                      <td className="px-4 py-3 text-sm" style={{ color: '#64748b' }}>{recipient.jobTitle || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -241,8 +241,8 @@ const RecipientUploader: React.FC<RecipientUploaderProps> = ({ onUpload, onBack 
         <button
           type="button"
           onClick={onBack}
-          className="px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:bg-white/10"
-          style={{ border: '1px solid rgba(255,255,255,0.1)', color: '#a0aec0' }}
+          className="px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300"
+          style={{ border: '1px solid rgba(148, 163, 184, 0.15)', color: '#94a3b8' }}
         >
           ← Back
         </button>
@@ -250,10 +250,10 @@ const RecipientUploader: React.FC<RecipientUploaderProps> = ({ onUpload, onBack 
           type="button"
           onClick={handleSubmit}
           disabled={recipients.length === 0}
-          className="px-8 py-3 rounded-xl font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+          className="px-8 py-3 rounded-xl font-semibold text-white text-sm transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
           style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            boxShadow: recipients.length === 0 ? 'none' : '0 4px 20px rgba(102, 126, 234, 0.4)'
+            background: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)',
+            boxShadow: recipients.length === 0 ? 'none' : '0 4px 20px rgba(20, 184, 166, 0.35)'
           }}
         >
           Continue →

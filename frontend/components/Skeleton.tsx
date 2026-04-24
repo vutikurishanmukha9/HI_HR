@@ -3,11 +3,15 @@ import React from 'react';
 /**
  * Skeleton Loader Components
  * Shimmer effect placeholders for loading states
+ * Uses warm slate shimmer on #141625 card background
  */
 
 // Base skeleton with shimmer
 export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
-    <div className={`animate-pulse bg-gradient-to-r from-white/5 via-white/10 to-white/5 rounded ${className}`} />
+    <div
+        className={`animate-pulse rounded ${className}`}
+        style={{ background: 'linear-gradient(90deg, rgba(148, 163, 184, 0.04) 0%, rgba(148, 163, 184, 0.1) 50%, rgba(148, 163, 184, 0.04) 100%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }}
+    />
 );
 
 // Text skeleton
@@ -46,9 +50,9 @@ export const SkeletonTableRow: React.FC<{ columns?: number }> = ({ columns = 4 }
 
 // Stats card skeleton
 export const SkeletonStats: React.FC = () => (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="glass-card p-4 space-y-2">
+            <div key={i} className="p-4 rounded-xl space-y-2" style={{ background: 'rgba(148, 163, 184, 0.04)', border: '1px solid rgba(148, 163, 184, 0.08)' }}>
                 <Skeleton className="h-4 w-20" />
                 <Skeleton className="h-8 w-16" />
             </div>

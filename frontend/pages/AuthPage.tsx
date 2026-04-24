@@ -40,10 +40,14 @@ const AuthPage: React.FC = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4">
-            {/* Animated background orbs */}
+            {/* Animated background orbs — warmer tones */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+                <div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full blur-[100px] animate-pulse"
+                    style={{ background: 'rgba(99, 102, 241, 0.12)' }} />
+                <div className="absolute bottom-1/3 right-1/4 w-72 h-72 rounded-full blur-[100px] animate-pulse"
+                    style={{ background: 'rgba(168, 85, 247, 0.1)', animationDelay: '1s' }} />
+                <div className="absolute top-1/2 right-1/3 w-64 h-64 rounded-full blur-[100px] animate-pulse"
+                    style={{ background: 'rgba(20, 184, 166, 0.08)', animationDelay: '2s' }} />
             </div>
 
             {/* Main Card */}
@@ -51,34 +55,39 @@ const AuthPage: React.FC = () => {
                 <div className="glass-card p-8 md:p-10">
                     {/* Logo & Title */}
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 mb-4 shadow-lg">
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5 shadow-lg"
+                            style={{ background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%)' }}>
+                            <span className="text-white font-extrabold text-2xl" style={{ fontFamily: "'Outfit', sans-serif" }}>Hi</span>
                         </div>
-                        <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: "'Playfair Display', serif", WebkitTextFillColor: 'transparent', background: 'linear-gradient(135deg, #a855f7 0%, #3b82f6 50%, #06b6d4 100%)', WebkitBackgroundClip: 'text' }}>
-                            HiHR
-                        </h1>
-                        <p className="text-gray-400">Smart HR Email Outreach</p>
+                        <h1 className="text-4xl font-extrabold mb-2 text-brand">HiHR</h1>
+                        <p style={{ color: '#94a3b8', fontSize: '0.9375rem' }}>Smart HR Email Outreach</p>
                     </div>
 
                     {/* Tab Switcher */}
-                    <div className="flex p-1 mb-8 rounded-xl" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                    <div className="flex p-1 mb-8 rounded-xl" style={{ background: 'rgba(148, 163, 184, 0.06)' }}>
                         <button
                             onClick={() => setIsLogin(true)}
-                            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 ${isLogin
-                                ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
-                                : 'text-gray-400 hover:text-white'
+                            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 text-sm ${isLogin
+                                ? 'text-white shadow-lg'
+                                : 'hover:text-white'
                                 }`}
+                            style={{
+                                background: isLogin ? 'linear-gradient(135deg, #6366f1, #a855f7)' : 'transparent',
+                                color: isLogin ? '#fff' : '#64748b',
+                            }}
                         >
-                            Login
+                            Sign In
                         </button>
                         <button
                             onClick={() => setIsLogin(false)}
-                            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 ${!isLogin
-                                ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg'
-                                : 'text-gray-400 hover:text-white'
+                            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 text-sm ${!isLogin
+                                ? 'text-white shadow-lg'
+                                : 'hover:text-white'
                                 }`}
+                            style={{
+                                background: !isLogin ? 'linear-gradient(135deg, #6366f1, #a855f7)' : 'transparent',
+                                color: !isLogin ? '#fff' : '#64748b',
+                            }}
                         >
                             Register
                         </button>
@@ -88,7 +97,7 @@ const AuthPage: React.FC = () => {
                     <form onSubmit={handleSubmit} className="space-y-5">
                         {!isLogin && (
                             <div className="slide-up">
-                                <label className="block text-sm font-medium text-gray-300 mb-2">
+                                <label className="block text-sm font-medium mb-2" style={{ color: '#94a3b8', letterSpacing: '0.03em' }}>
                                     Full Name
                                 </label>
                                 <input
@@ -102,7 +111,7 @@ const AuthPage: React.FC = () => {
                         )}
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                            <label className="block text-sm font-medium mb-2" style={{ color: '#94a3b8', letterSpacing: '0.03em' }}>
                                 Email Address
                             </label>
                             <input
@@ -115,7 +124,7 @@ const AuthPage: React.FC = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                            <label className="block text-sm font-medium mb-2" style={{ color: '#94a3b8', letterSpacing: '0.03em' }}>
                                 Password
                             </label>
                             <input
@@ -130,9 +139,9 @@ const AuthPage: React.FC = () => {
                         </div>
 
                         {error && (
-                            <div className="p-4 rounded-lg" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                                <p className="text-red-400 text-sm flex items-center gap-2">
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <div className="p-4 rounded-xl" style={{ background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.25)' }}>
+                                <p className="text-sm flex items-center gap-2" style={{ color: '#fb7185' }}>
+                                    <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                                     </svg>
                                     {error}
@@ -143,10 +152,11 @@ const AuthPage: React.FC = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-4 rounded-xl font-semibold text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full py-4 rounded-xl font-semibold text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed text-sm"
                             style={{
-                                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                                boxShadow: loading ? 'none' : '0 4px 20px rgba(102, 126, 234, 0.4)'
+                                background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
+                                boxShadow: loading ? 'none' : '0 4px 20px rgba(99, 102, 241, 0.35)',
+                                letterSpacing: '0.02em',
                             }}
                         >
                             {loading ? (
@@ -162,12 +172,12 @@ const AuthPage: React.FC = () => {
                     </form>
 
                     {/* Info Box */}
-                    <div className="mt-6 p-4 rounded-xl" style={{ background: 'rgba(6, 182, 212, 0.1)', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
-                        <p className="text-sm text-cyan-300 flex items-start gap-2">
+                    <div className="mt-6 p-4 rounded-xl" style={{ background: 'rgba(20, 184, 166, 0.08)', border: '1px solid rgba(20, 184, 166, 0.2)' }}>
+                        <p className="text-sm flex items-start gap-2" style={{ color: '#5eead4' }}>
                             <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                             </svg>
-                            <span>Your Gmail credentials are encrypted and stored securely on our servers.</span>
+                            <span>Your Gmail credentials are encrypted end-to-end and stored securely on our servers.</span>
                         </p>
                     </div>
                 </div>

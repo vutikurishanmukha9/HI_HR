@@ -7,36 +7,45 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                'display': ['Playfair Display', 'serif'],
+                'display': ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
                 'sans': ['Inter', 'system-ui', 'sans-serif'],
             },
             colors: {
-                primary: {
-                    50: '#f5f3ff',
-                    100: '#ede9fe',
-                    200: '#ddd6fe',
-                    300: '#c4b5fd',
-                    400: '#a78bfa',
-                    500: '#8b5cf6',
-                    600: '#7c3aed',
-                    700: '#6d28d9',
-                    800: '#5b21b6',
-                    900: '#4c1d95',
+                surface: {
+                    primary: '#0c0e1a',
+                    secondary: '#111327',
+                    tertiary: '#141625',
+                    card: 'rgba(22, 24, 42, 0.85)',
+                },
+                accent: {
+                    indigo: '#6366f1',
+                    violet: '#a855f7',
+                    teal: '#14b8a6',
+                    emerald: '#10b981',
+                    rose: '#f43f5e',
+                    amber: '#f59e0b',
+                    cyan: '#06b6d4',
+                    blue: '#3b82f6',
                 },
             },
             animation: {
                 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                'fade-in': 'fadeIn 0.5s ease-out',
-                'slide-up': 'slideUp 0.5s ease-out',
+                'fade-in': 'fadeIn 0.5s ease-out forwards',
+                'slide-up': 'slideUp 0.5s ease-out forwards',
+                'glow': 'glowPulse 2.5s ease-in-out infinite',
             },
             keyframes: {
                 fadeIn: {
-                    '0%': { opacity: '0' },
-                    '100%': { opacity: '1' },
+                    '0%': { opacity: '0', transform: 'translateY(16px)' },
+                    '100%': { opacity: '1', transform: 'translateY(0)' },
                 },
                 slideUp: {
-                    '0%': { opacity: '0', transform: 'translateY(20px)' },
+                    '0%': { opacity: '0', transform: 'translateY(30px)' },
                     '100%': { opacity: '1', transform: 'translateY(0)' },
+                },
+                glowPulse: {
+                    '0%, 100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.2)' },
+                    '50%': { boxShadow: '0 0 35px rgba(99, 102, 241, 0.35)' },
                 },
             },
         },

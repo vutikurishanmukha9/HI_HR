@@ -21,13 +21,13 @@ const StatusIndicator: React.FC<{ progress: SendProgressState }> = ({ progress }
 
     switch (status) {
         case EmailStatus.Queued:
-            return <span className="flex items-center text-xs font-medium text-gray-500"><span className="w-2 h-2 rounded-full bg-gray-400 mr-2" />Queued</span>;
+            return <span className="flex items-center text-xs font-medium" style={{ color: '#64748b' }}><span className="w-2 h-2 rounded-full mr-2" style={{ background: '#64748b' }} />Queued</span>;
         case EmailStatus.Sending:
-            return <span className="flex items-center text-xs font-medium text-blue-400"><span className="w-2 h-2 rounded-full bg-blue-400 mr-2 animate-pulse" />Sending...</span>;
+            return <span className="flex items-center text-xs font-medium" style={{ color: '#06b6d4' }}><span className="w-2 h-2 rounded-full mr-2 animate-pulse" style={{ background: '#06b6d4' }} />Sending...</span>;
         case EmailStatus.Sent:
-            return <span className="flex items-center text-xs font-medium text-emerald-400"><svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>Sent</span>;
+            return <span className="flex items-center text-xs font-medium" style={{ color: '#14b8a6' }}><svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>Sent</span>;
         case EmailStatus.Failed:
-            return <span title={error || 'Error'} className="flex items-center text-xs font-medium text-red-400 cursor-help"><svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>Failed</span>;
+            return <span title={error || 'Error'} className="flex items-center text-xs font-medium cursor-help" style={{ color: '#fb7185' }}><svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>Failed</span>;
         default:
             return null;
     }
@@ -89,13 +89,13 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
             {/* Header */}
             <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-                    style={{ background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(16, 185, 129, 0.2) 100%)', border: '1px solid rgba(6, 182, 212, 0.3)' }}>
-                    <svg className="w-7 h-7 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    style={{ background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15))', border: '1px solid rgba(6, 182, 212, 0.25)' }}>
+                    <svg className="w-7 h-7" style={{ color: '#22d3ee' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Review & Send</h2>
-                <p className="text-gray-400">
+                <h2 className="text-2xl font-bold mb-2" style={{ color: '#f1f5f9' }}>Review & Send</h2>
+                <p style={{ color: '#94a3b8', fontSize: '0.9375rem' }}>
                     {isCampaignFinished ? 'Campaign complete!' : scheduledTime ? 'Campaign scheduled.' : 'Final review before sending'}
                 </p>
             </div>
@@ -104,76 +104,76 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Left Column - Summary */}
                     <div className="space-y-6">
-                        <div className="rounded-xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                                <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="rounded-xl p-5" style={{ background: 'rgba(148, 163, 184, 0.04)', border: '1px solid rgba(148, 163, 184, 0.12)' }}>
+                            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: '#f1f5f9' }}>
+                                <svg className="w-5 h-5" style={{ color: '#22d3ee' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
                                 Campaign Summary
                             </h3>
                             <div className="space-y-3">
-                                <div className="flex justify-between"><span className="text-gray-400">Sender</span><span className="text-white">{credentials?.email}</span></div>
-                                <div className="flex justify-between"><span className="text-gray-400">Recipients</span><span className="text-white">{recipientsForCampaign.length} selected</span></div>
-                                <div className="flex justify-between"><span className="text-gray-400">Subject</span><span className="text-white truncate max-w-[200px]">{emailTemplate.subject}</span></div>
+                                <div className="flex justify-between"><span style={{ color: '#94a3b8' }}>Sender</span><span style={{ color: '#f1f5f9' }}>{credentials?.email}</span></div>
+                                <div className="flex justify-between"><span style={{ color: '#94a3b8' }}>Recipients</span><span style={{ color: '#f1f5f9' }}>{recipientsForCampaign.length} selected</span></div>
+                                <div className="flex justify-between"><span style={{ color: '#94a3b8' }}>Subject</span><span className="truncate max-w-[200px]" style={{ color: '#f1f5f9' }}>{emailTemplate.subject}</span></div>
                                 {emailTemplate.attachments && emailTemplate.attachments.length > 0 && (
-                                    <div className="flex justify-between"><span className="text-gray-400">Attachments</span><span className="text-white">{emailTemplate.attachments.length} files</span></div>
+                                    <div className="flex justify-between"><span style={{ color: '#94a3b8' }}>Attachments</span><span style={{ color: '#f1f5f9' }}>{emailTemplate.attachments.length} files</span></div>
                                 )}
                             </div>
-                            <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                                <p className="text-sm text-gray-400 mb-2">Preview</p>
-                                <div className="p-3 rounded-lg max-h-32 overflow-y-auto text-sm text-gray-300" style={{ background: 'rgba(0,0,0,0.2)' }} dangerouslySetInnerHTML={{ __html: emailTemplate.body }} />
+                            <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(148, 163, 184, 0.1)' }}>
+                                <p className="text-sm mb-2" style={{ color: '#64748b' }}>Preview</p>
+                                <div className="p-3 rounded-lg max-h-32 overflow-y-auto text-sm" style={{ background: 'rgba(0,0,0,0.2)', color: '#94a3b8' }} dangerouslySetInnerHTML={{ __html: emailTemplate.body }} />
                             </div>
                         </div>
 
                         {isCampaignFinished ? (
-                            <div className="rounded-xl p-5" style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                                <h4 className="font-semibold text-white mb-4">Campaign Results</h4>
+                            <div className="rounded-xl p-5" style={{ background: 'rgba(20, 184, 166, 0.08)', border: '1px solid rgba(20, 184, 166, 0.2)' }}>
+                                <h4 className="font-semibold mb-4" style={{ color: '#f1f5f9' }}>Campaign Results</h4>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="text-center p-4 rounded-lg" style={{ background: 'rgba(16, 185, 129, 0.2)' }}>
-                                        <p className="text-3xl font-bold text-emerald-400">{sentCount}</p>
-                                        <p className="text-sm text-emerald-300">Sent</p>
+                                    <div className="text-center p-4 rounded-lg" style={{ background: 'rgba(20, 184, 166, 0.15)' }}>
+                                        <p className="text-3xl font-bold" style={{ color: '#14b8a6' }}>{sentCount}</p>
+                                        <p className="text-sm" style={{ color: '#5eead4' }}>Sent</p>
                                     </div>
-                                    <div className="text-center p-4 rounded-lg" style={{ background: 'rgba(239, 68, 68, 0.2)' }}>
-                                        <p className="text-3xl font-bold text-red-400">{failedCount}</p>
-                                        <p className="text-sm text-red-300">Failed</p>
+                                    <div className="text-center p-4 rounded-lg" style={{ background: 'rgba(244, 63, 94, 0.15)' }}>
+                                        <p className="text-3xl font-bold" style={{ color: '#fb7185' }}>{failedCount}</p>
+                                        <p className="text-sm" style={{ color: '#fda4af' }}>Failed</p>
                                     </div>
                                 </div>
-                                <button onClick={onReset} className="w-full mt-4 px-6 py-3 rounded-xl font-semibold text-white transition-all hover:scale-105" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+                                <button onClick={onReset} className="w-full mt-4 px-6 py-3 rounded-xl font-semibold text-white text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', boxShadow: '0 4px 15px rgba(6, 182, 212, 0.35)' }}>
                                     Start New Campaign
                                 </button>
                             </div>
                         ) : scheduledTime && !isSending ? (
-                            <div className="rounded-xl p-5" style={{ background: 'rgba(6, 182, 212, 0.1)', border: '1px solid rgba(6, 182, 212, 0.3)' }}>
-                                <p className="text-cyan-300 text-center mb-4">Scheduled for:<br /><strong className="text-white">{scheduledTime.toLocaleString()}</strong></p>
+                            <div className="rounded-xl p-5" style={{ background: 'rgba(6, 182, 212, 0.08)', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
+                                <p className="text-center mb-4" style={{ color: '#67e8f9' }}>Scheduled for:<br /><strong style={{ color: '#f1f5f9' }}>{scheduledTime.toLocaleString()}</strong></p>
                                 <div className="flex gap-3">
-                                    <button onClick={() => onScheduleOrSend({ time: null, batchSize, batchDelay, recipientsToSend: recipientsForCampaign })} className="flex-1 py-2 rounded-lg font-medium text-white" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>Send Now</button>
-                                    <button onClick={onCancelSchedule} className="flex-1 py-2 rounded-lg font-medium" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#a0aec0' }}>Cancel</button>
+                                    <button onClick={() => onScheduleOrSend({ time: null, batchSize, batchDelay, recipientsToSend: recipientsForCampaign })} className="flex-1 py-2 rounded-lg font-medium text-white text-sm" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)' }}>Send Now</button>
+                                    <button onClick={onCancelSchedule} className="flex-1 py-2 rounded-lg font-medium text-sm" style={{ background: 'rgba(148, 163, 184, 0.06)', border: '1px solid rgba(148, 163, 184, 0.15)', color: '#94a3b8' }}>Cancel</button>
                                 </div>
                             </div>
                         ) : (
-                            <div className="rounded-xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                <h4 className="font-semibold text-white mb-4">Sending Options</h4>
+                            <div className="rounded-xl p-5" style={{ background: 'rgba(148, 163, 184, 0.04)', border: '1px solid rgba(148, 163, 184, 0.12)' }}>
+                                <h4 className="font-semibold mb-4" style={{ color: '#f1f5f9' }}>Sending Options</h4>
                                 <div className="grid grid-cols-2 gap-4 mb-4">
                                     <div>
-                                        <label className="block text-sm text-gray-400 mb-2">Batch Size</label>
+                                        <label className="block text-sm mb-2" style={{ color: '#94a3b8', letterSpacing: '0.03em' }}>Batch Size</label>
                                         <input type="number" value={batchSize} onChange={(e) => setBatchSize(parseInt(e.target.value, 10) || 1)} min="1" disabled={isSending} />
                                     </div>
                                     <div>
-                                        <label className="block text-sm text-gray-400 mb-2">Delay (sec)</label>
+                                        <label className="block text-sm mb-2" style={{ color: '#94a3b8', letterSpacing: '0.03em' }}>Delay (sec)</label>
                                         <input type="number" value={batchDelay} onChange={(e) => setBatchDelay(parseInt(e.target.value, 10) || 0)} min="0" disabled={isSending} />
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 mb-4">
                                     <input id="schedule-toggle" type="checkbox" checked={isScheduling} onChange={(e) => setIsScheduling(e.target.checked)} disabled={isSending} className="w-4 h-4 rounded" />
-                                    <label htmlFor="schedule-toggle" className="text-sm text-gray-300">Schedule for later</label>
+                                    <label htmlFor="schedule-toggle" className="text-sm" style={{ color: '#94a3b8' }}>Schedule for later</label>
                                 </div>
                                 {isScheduling && (
                                     <input type="datetime-local" value={scheduleDateTime} onChange={(e) => setScheduleDateTime(e.target.value)} min={getMinDateTime()} disabled={isSending} className="w-full mb-4" />
                                 )}
-                                {scheduleError && <p className="text-red-400 text-sm mb-4">{scheduleError}</p>}
+                                {scheduleError && <p className="text-sm mb-4" style={{ color: '#fb7185' }}>{scheduleError}</p>}
                                 <div className="flex gap-3">
-                                    <button onClick={onBack} disabled={isSending} className="px-6 py-3 rounded-xl font-medium transition-all hover:bg-white/10" style={{ border: '1px solid rgba(255,255,255,0.1)', color: '#a0aec0' }}>← Back</button>
-                                    <button onClick={handleActionClick} disabled={isSending || (isScheduling && !scheduleDateTime) || recipientsForCampaign.length === 0} className="flex-1 py-3 rounded-xl font-semibold text-white transition-all disabled:opacity-50 hover:scale-105" style={{ background: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)', boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)' }}>
+                                    <button onClick={onBack} disabled={isSending} className="px-6 py-3 rounded-xl font-medium text-sm transition-all" style={{ border: '1px solid rgba(148, 163, 184, 0.15)', color: '#94a3b8' }}>← Back</button>
+                                    <button onClick={handleActionClick} disabled={isSending || (isScheduling && !scheduleDateTime) || recipientsForCampaign.length === 0} className="flex-1 py-3 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-40 hover:scale-[1.02] active:scale-[0.98]" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', boxShadow: '0 4px 20px rgba(6, 182, 212, 0.35)' }}>
                                         {getButtonText()}
                                     </button>
                                 </div>
@@ -184,38 +184,38 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                     {/* Right Column - Recipients */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-white">Recipients</h3>
+                            <h3 className="text-lg font-semibold" style={{ color: '#f1f5f9' }}>Recipients</h3>
                             {(isSending || isCampaignFinished) && (
-                                <span className="text-sm text-gray-400">{sentCount + failedCount} / {campaignSize}</span>
+                                <span className="text-sm" style={{ color: '#94a3b8' }}>{sentCount + failedCount} / {campaignSize}</span>
                             )}
                         </div>
 
                         {(isSending || isCampaignFinished) && (
-                            <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
-                                <div className="h-full transition-all duration-500" style={{ width: `${progressPercentage}%`, background: 'linear-gradient(90deg, #10b981 0%, #06b6d4 100%)' }} />
+                            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148, 163, 184, 0.1)' }}>
+                                <div className="h-full transition-all duration-500 rounded-full" style={{ width: `${progressPercentage}%`, background: 'linear-gradient(90deg, #06b6d4, #3b82f6)' }} />
                             </div>
                         )}
 
-                        <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(148, 163, 184, 0.04)', border: '1px solid rgba(148, 163, 184, 0.12)' }}>
                             {!isSending && !isCampaignFinished && (
-                                <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(148, 163, 184, 0.1)' }}>
                                     <div className="flex items-center gap-2">
                                         <input id="select-all" type="checkbox" checked={recipients.length > 0 && selectedEmails.length === recipients.length} onChange={handleSelectAll} className="w-4 h-4 rounded" />
-                                        <label htmlFor="select-all" className="text-sm text-gray-300">Select All</label>
+                                        <label htmlFor="select-all" className="text-sm" style={{ color: '#94a3b8' }}>Select All</label>
                                     </div>
-                                    <span className="text-sm text-gray-500">{selectedEmails.length} / {recipients.length}</span>
+                                    <span className="text-sm" style={{ color: '#64748b' }}>{selectedEmails.length} / {recipients.length}</span>
                                 </div>
                             )}
                             <div className="max-h-80 overflow-y-auto">
                                 {displayList.map((recipient) => (
-                                    <div key={recipient.email} className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <div key={recipient.email} className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(148, 163, 184, 0.06)' }}>
                                         <div className="flex items-center gap-3">
                                             {!isSending && !isCampaignFinished && (
                                                 <input type="checkbox" checked={selectedEmails.includes(recipient.email)} onChange={() => handleRecipientSelect(recipient.email)} className="w-4 h-4 rounded" />
                                             )}
                                             <div>
-                                                <p className="text-sm font-medium text-white">{recipient.fullName}</p>
-                                                <p className="text-xs text-gray-500">{recipient.email}</p>
+                                                <p className="text-sm font-medium" style={{ color: '#f1f5f9' }}>{recipient.fullName}</p>
+                                                <p className="text-xs" style={{ color: '#64748b' }}>{recipient.email}</p>
                                             </div>
                                         </div>
                                         {(isSending || isCampaignFinished) && <StatusIndicator progress={sendProgress[recipient.email] || { status: EmailStatus.Queued }} />}
@@ -226,9 +226,9 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                     </div>
                 </div>
             ) : (
-                <div className="text-center p-8 rounded-xl" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                    <p className="text-red-400 mb-4">Please complete all previous steps first.</p>
-                    <button onClick={onBack} className="px-6 py-3 rounded-xl font-semibold text-white" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>Go Back</button>
+                <div className="text-center p-8 rounded-xl" style={{ background: 'rgba(244, 63, 94, 0.08)', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
+                    <p className="mb-4" style={{ color: '#fb7185' }}>Please complete all previous steps first.</p>
+                    <button onClick={onBack} className="px-6 py-3 rounded-xl font-semibold text-white text-sm" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)' }}>Go Back</button>
                 </div>
             )}
         </div>
