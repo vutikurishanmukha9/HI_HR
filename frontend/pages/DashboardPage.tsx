@@ -187,7 +187,40 @@ const DashboardPage: React.FC = () => {
                                     isSending={campaign.isSending}
                                     isCampaignFinished={campaign.isCampaignFinished}
                                     scheduledTime={campaign.scheduledTime}
-                                    onScheduleOrSend={campaign.handleSendCampaign}
+                                    onScheduleOrSend={async (config) => {
+                                        const result = await campaign.handleSendCampaign(config);
+                                        if (!result) return;
+
+                                        if (!result.success) {
+                                            // Whole campaign failed
+                                            const errorType = (result as any).errorType;
+                                            const errorMsg = (result as any).error || 'Campaign failed';
+
+                                            if (errorType === 'credential') {
+                                                toast.error('Credential Error', errorMsg);
+                                            } else if (errorType === 'validation') {
+                                                toast.error('Validation Error', errorMsg);
+                                            } else if (errorType === 'network') {
+                                                toast.error('Connection Error', errorMsg);
+                                            } else {
+                                                toast.error('Send Failed', errorMsg);
+                                            }
+                                        } else if (result.success) {
+                                            const r = result as any;
+                                            if (r.failed > 0 && r.sent > 0) {
+                                                // Partial success
+                                                toast.warning(
+                                                    'Partially Sent',
+                                                    `${r.sent} sent, ${r.failed} failed. Hover over failed recipients to see details.`
+                                                );
+                                            } else if (r.failed > 0 && r.sent === 0) {
+                                                // All failed
+                                                const firstError = r.failedDetails?.[0]?.error || 'Unknown error';
+                                                toast.error('All Emails Failed', firstError);
+                                            }
+                                            // Full success is handled by the confetti/celebration effect
+                                        }
+                                    }}
                                     onCancelSchedule={campaign.handleCancelSchedule}
                                     onBack={campaign.handleBack}
                                     onReset={campaign.handleReset}

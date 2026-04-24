@@ -4,7 +4,7 @@ import campaignService from '../services/campaign.service';
 import credentialService from '../services/credential.service';
 import emailService from '../services/email.service';
 import { parseExcelFile } from '../utils/excel';
-import { AppError } from '../middleware/errorHandler';
+import { AppError, ApiError, ErrorCode } from '../middleware/errorHandler';
 import multer from 'multer';
 import path from 'path';
 import { env } from '../config/env';
@@ -141,11 +141,36 @@ export class CampaignController {
             } = req.body as SendCampaignRequest;
 
             if (!recipients || recipients.length === 0) {
-                throw new AppError('No recipients provided', 400);
+                throw ApiError.badRequest('No recipients provided. Please upload at least one recipient.', ErrorCode.MISSING_REQUIRED_FIELD);
             }
 
             if (!subject || !body) {
-                throw new AppError('Subject and body are required', 400);
+                throw ApiError.badRequest('Subject and body are required. Please compose your email before sending.', ErrorCode.MISSING_REQUIRED_FIELD);
+            }
+
+            // Validate recipient email formats - skip invalid ones instead of blocking
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const invalidEmails = recipients.filter(r => !emailRegex.test(r.email));
+            const validRecipients = recipients.filter(r => emailRegex.test(r.email));
+
+            // Pre-populate results for invalid emails (mark as failed immediately)
+            const results: Array<{ email: string; status: 'sent' | 'failed'; error?: string }> = [];
+            invalidEmails.forEach(r => {
+                results.push({
+                    email: r.email,
+                    status: 'failed',
+                    error: `Invalid email format: "${r.email}". Skipped.`,
+                });
+            });
+
+            // If ALL emails are invalid, return early with results
+            if (validRecipients.length === 0) {
+                res.json({
+                    message: `Campaign complete: 0 sent, ${invalidEmails.length} failed (all emails were invalid)`,
+                    results,
+                    summary: { total: recipients.length, sent: 0, failed: invalidEmails.length },
+                });
+                return;
             }
 
             // Log received attachments
@@ -159,27 +184,38 @@ export class CampaignController {
             // Get the user's email credential
             const credentials = await credentialService.getCredentials(req.user!.id);
 
+            if (!credentials || credentials.length === 0) {
+                throw ApiError.badRequest(
+                    'No email credentials found. Please go back to Step 1 and add your Gmail credentials.',
+                    ErrorCode.MISSING_REQUIRED_FIELD
+                );
+            }
+
             // Find the credential by email or use default
             let credential;
             if (credentialEmail) {
                 const cred = credentials.find(c => c.email === credentialEmail);
                 if (!cred) {
-                    throw new AppError('Email credential not found', 404);
+                    const availableEmails = credentials.map(c => c.email).join(', ');
+                    throw ApiError.notFound(
+                        `Sender email "${credentialEmail}" not found in your saved credentials. Available credentials: ${availableEmails}. Please go back to Step 1 and add this email.`
+                    );
                 }
                 credential = await credentialService.getCredentialById(req.user!.id, cred.id);
             } else {
                 const defaultCred = credentials.find(c => c.isDefault);
                 if (!defaultCred) {
-                    throw new AppError('No email credential configured', 400);
+                    throw ApiError.badRequest(
+                        'No default email credential configured. Please go back to Step 1 and set up your sender email.',
+                        ErrorCode.MISSING_REQUIRED_FIELD
+                    );
                 }
                 credential = await credentialService.getCredentialById(req.user!.id, defaultCred.id);
             }
 
-            // Send emails in batches
-            const results: Array<{ email: string; status: 'sent' | 'failed'; error?: string }> = [];
-
-            for (let i = 0; i < recipients.length; i++) {
-                const recipient = recipients[i];
+            // Send emails in batches (only to valid recipients)
+            for (let i = 0; i < validRecipients.length; i++) {
+                const recipient = validRecipients[i];
 
                 try {
                     // Personalize subject and body
@@ -222,17 +258,32 @@ export class CampaignController {
                     results.push({ email: recipient.email, status: 'sent' });
                 } catch (error: any) {
                     console.error(`Failed to send to ${recipient.email}:`, error.message);
+
+                    // Provide user-friendly error messages per recipient
+                    let friendlyError = error.message || 'Unknown error';
+                    if (error.message?.includes('Invalid login') || error.message?.includes('authentication failed')) {
+                        friendlyError = 'Gmail authentication failed. Please check your App Password in Step 1.';
+                    } else if (error.message?.includes('Recipient address rejected') || error.message?.includes('550')) {
+                        friendlyError = `Recipient email "${recipient.email}" does not exist or was rejected by the mail server.`;
+                    } else if (error.message?.includes('timeout') || error.message?.includes('ETIMEDOUT')) {
+                        friendlyError = 'Connection timed out. Gmail may be temporarily unavailable. Please try again.';
+                    } else if (error.message?.includes('ECONNREFUSED') || error.message?.includes('ESOCKET')) {
+                        friendlyError = 'Could not connect to Gmail servers. Please check your internet connection.';
+                    } else if (error.message?.includes('Rate limit') || error.message?.includes('too many')) {
+                        friendlyError = 'Gmail rate limit reached. Please wait a few minutes and try again with fewer recipients.';
+                    }
+
                     results.push({
                         email: recipient.email,
                         status: 'failed',
-                        error: error.message || 'Unknown error'
+                        error: friendlyError
                     });
                 }
 
                 // Batch delay - wait between batches
-                if ((i + 1) % batchSize === 0 && i < recipients.length - 1) {
+                if ((i + 1) % batchSize === 0 && i < validRecipients.length - 1) {
                     await new Promise(resolve => setTimeout(resolve, batchDelay * 1000));
-                } else if (i < recipients.length - 1) {
+                } else if (i < validRecipients.length - 1) {
                     // Small delay between individual emails (300ms)
                     await new Promise(resolve => setTimeout(resolve, 300));
                 }

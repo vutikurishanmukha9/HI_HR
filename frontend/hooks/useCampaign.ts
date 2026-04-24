@@ -126,19 +126,62 @@ export function useCampaign() {
             });
 
             setIsCampaignFinished(true);
+
+            // Return summary for toast notifications
+            const sentCount = result.results.filter(r => r.status === 'sent').length;
+            const failedCount = result.results.filter(r => r.status === 'failed').length;
+            const failedDetails = result.results
+                .filter(r => r.status === 'failed')
+                .map(r => ({ email: r.email, error: r.error || 'Unknown error' }));
+
+            return {
+                success: true,
+                sent: sentCount,
+                failed: failedCount,
+                failedDetails,
+            };
         } catch (error: any) {
             console.error('Campaign send error:', error);
+
+            // Parse error message for user-friendly display
+            let errorMessage = 'Campaign failed';
+            let errorType: 'credential' | 'validation' | 'network' | 'unknown' = 'unknown';
+
+            if (error instanceof Error) {
+                errorMessage = error.message;
+            } else if (typeof error === 'string') {
+                errorMessage = error;
+            } else if (error && typeof error === 'object') {
+                errorMessage = error.message || error.error || JSON.stringify(error);
+            }
+
+            // Categorize the error
+            const msg = errorMessage.toLowerCase();
+            if (msg.includes('credential') || msg.includes('not found in your saved') || msg.includes('app password') || msg.includes('authentication')) {
+                errorType = 'credential';
+            } else if (msg.includes('invalid email') || msg.includes('no recipients') || msg.includes('subject and body')) {
+                errorType = 'validation';
+            } else if (msg.includes('network') || msg.includes('fetch') || msg.includes('connect') || msg.includes('timeout')) {
+                errorType = 'network';
+            }
+
             // Mark all as failed
             config.recipientsToSend.forEach(r => {
                 setSendProgress(prev => ({
                     ...prev,
                     [r.email]: {
                         status: EmailStatus.Failed,
-                        error: error.message || 'Campaign failed'
+                        error: errorMessage
                     }
                 }));
             });
             setIsCampaignFinished(true);
+
+            return {
+                success: false,
+                error: errorMessage,
+                errorType,
+            };
         } finally {
             setIsSending(false);
         }
