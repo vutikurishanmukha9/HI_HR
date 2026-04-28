@@ -1,0 +1,178 @@
+// HiHR Prisma Schema
+// PostgreSQL for production deployment
+// For local development: Change to "sqlite" and use DATABASE_URL="file:./dev.db"
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  // Production: Change to "postgresql"
+  // Local dev: SQLite with DATABASE_URL="file:./dev.db"
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String             @id @default(uuid())
+  email                 String             @unique
+  passwordHash          String             @map("password_hash")
+  fullName              String             @map("full_name")
+  createdAt             DateTime           @default(now()) @map("created_at")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
+  lastLogin             DateTime?          @map("last_login")
+  isActive              Boolean            @default(true) @map("is_active")
+  failedLoginAttempts   Int                @default(0) @map("failed_login_attempts")
+  lockedUntil           DateTime?          @map("locked_until")
+  
+  emailCredentials  EmailCredential[]
+  campaigns         Campaign[]
+
+  @@map("users")
+}
+
+model EmailCredential {
+  id                    String    @id @default(uuid())
+  userId                String    @map("user_id")
+  email                 String
+  appPasswordEncrypted  String    @map("app_password_encrypted")
+  isDefault             Boolean   @default(false) @map("is_default")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, email])
+  @@map("email_credentials")
+}
+
+model Campaign {
+  id                String       @id @default(uuid())
+  userId            String       @map("user_id")
+  name              String
+  subject           String
+  body              String
+  status            String       @default("draft") // draft, scheduled, sending, completed, paused, failed
+  scheduledTime     DateTime?    @map("scheduled_time")
+  batchSize         Int          @default(10) @map("batch_size")
+  batchDelay        Int          @default(60) @map("batch_delay")
+  totalRecipients   Int          @default(0) @map("total_recipients")
+  sentCount         Int          @default(0) @map("sent_count")
+  failedCount       Int          @default(0) @map("failed_count")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipients        Recipient[]
+  attachments       Attachment[]
+
+  @@map("campaigns")
+}
+
+model Recipient {
+  id            String    @id @default(uuid())
+  campaignId    String    @map("campaign_id")
+  fullName      String    @map("full_name")
+  email         String
+  companyName   String    @map("company_name")
+  jobTitle      String?   @map("job_title")
+  status        String    @default("queued") // queued, sending, sent, failed
+  errorMessage  String?   @map("error_message")
+  sentAt        DateTime? @map("sent_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  
+  campaign      Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("recipients")
+}
+
+model Attachment {
+  id          String    @id @default(uuid())
+  campaignId  String    @map("campaign_id")
+  filename    String
+  filePath    String    @map("file_path")
+  fileSize    Int       @map("file_size")
+  mimeType    String?   @map("mime_type")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  campaign    Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+}
+
+// ============= Compliance Models =============
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  action      String    // "email_sent", "email_failed", "credential_added", etc.
+  targetEmail String?   @map("target_email")
+  details     String?   // JSON string for additional context
+  ipAddress   String?   @map("ip_address")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============= UX Enhancement Models =============
+
+model EmailDraft {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  name        String?
+  subject     String?
+  body        String?
+  recipients  String?   // JSON string of recipients array
+  attachments String?   // JSON string of attachment metadata
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  @@index([userId])
+  @@map("email_drafts")
+}
+
+// ============= Email Tracking Models =============
+
+model EmailTracking {
+  id            String    @id @default(uuid())
+  campaignId    String?   @map("campaign_id")
+  recipientId   String?   @map("recipient_id")
+  recipientEmail String   @map("recipient_email")
+  subject       String?
+  trackingToken String    @unique @map("tracking_token")
+  openCount     Int       @default(0) @map("open_count")
+  firstOpenedAt DateTime? @map("first_opened_at")
+  lastOpenedAt  DateTime? @map("last_opened_at")
+  userAgent     String?   @map("user_agent")
+  ipAddress     String?   @map("ip_address")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  
+  linkClicks    LinkClick[]
+  
+  @@index([campaignId])
+  @@index([trackingToken])
+  @@index([recipientEmail])
+  @@map("email_tracking")
+}
+
+model LinkClick {
+  id              String    @id @default(uuid())
+  emailTrackingId String    @map("email_tracking_id")
+  originalUrl     String    @map("original_url")
+  clickToken      String    @unique @map("click_token")
+  clickCount      Int       @default(0) @map("click_count")
+  firstClickedAt  DateTime? @map("first_clicked_at")
+  lastClickedAt   DateTime? @map("last_clicked_at")
+  userAgent       String?   @map("user_agent")
+  ipAddress       String?   @map("ip_address")
+  
+  emailTracking   EmailTracking @relation(fields: [emailTrackingId], references: [id], onDelete: Cascade)
+  
+  @@index([emailTrackingId])
+  @@index([clickToken])
+  @@map("link_clicks")
+}
+

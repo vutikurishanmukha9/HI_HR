@@ -1,0 +1,98 @@
+// Prisma schema for PostgreSQL (Production)
+// Copy this to schema.prisma before deploying to Railway
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String             @id @default(uuid())
+  email                 String             @unique
+  passwordHash          String             @map("password_hash")
+  fullName              String             @map("full_name")
+  createdAt             DateTime           @default(now()) @map("created_at")
+  updatedAt             DateTime           @updatedAt @map("updated_at")
+  lastLogin             DateTime?          @map("last_login")
+  isActive              Boolean            @default(true) @map("is_active")
+  failedLoginAttempts   Int                @default(0) @map("failed_login_attempts")
+  lockedUntil           DateTime?          @map("locked_until")
+  
+  emailCredentials  EmailCredential[]
+  campaigns         Campaign[]
+
+  @@map("users")
+}
+
+model EmailCredential {
+  id                    String    @id @default(uuid())
+  userId                String    @map("user_id")
+  email                 String
+  appPasswordEncrypted  String    @map("app_password_encrypted")
+  isDefault             Boolean   @default(false) @map("is_default")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+  
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, email])
+  @@map("email_credentials")
+}
+
+model Campaign {
+  id                String       @id @default(uuid())
+  userId            String       @map("user_id")
+  name              String
+  subject           String
+  body              String
+  status            String       @default("draft") // draft, scheduled, sending, completed, paused, failed
+  scheduledTime     DateTime?    @map("scheduled_time")
+  batchSize         Int          @default(10) @map("batch_size")
+  batchDelay        Int          @default(60) @map("batch_delay")
+  totalRecipients   Int          @default(0) @map("total_recipients")
+  sentCount         Int          @default(0) @map("sent_count")
+  failedCount       Int          @default(0) @map("failed_count")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  recipients        Recipient[]
+  attachments       Attachment[]
+
+  @@map("campaigns")
+}
+
+model Recipient {
+  id            String    @id @default(uuid())
+  campaignId    String    @map("campaign_id")
+  fullName      String    @map("full_name")
+  email         String
+  companyName   String    @map("company_name")
+  jobTitle      String?   @map("job_title")
+  status        String    @default("queued") // queued, sending, sent, failed
+  errorMessage  String?   @map("error_message")
+  sentAt        DateTime? @map("sent_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  
+  campaign      Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("recipients")
+}
+
+model Attachment {
+  id          String    @id @default(uuid())
+  campaignId  String    @map("campaign_id")
+  filename    String
+  filePath    String    @map("file_path")
+  fileSize    Int       @map("file_size")
+  mimeType    String?   @map("mime_type")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  campaign    Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@map("attachments")
+}

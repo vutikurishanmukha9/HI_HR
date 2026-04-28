@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: hihr_postgres
+    environment:
+      POSTGRES_DB: hihr
+      POSTGRES_USER: hihr
+      POSTGRES_PASSWORD: hihr_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hihr -d hihr"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis (for future rate limiting/sessions)
+  redis:
+    image: redis:7-alpine
+    container_name: hihr_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+
+# Usage:
+# docker-compose up -d          # Start services
+# docker-compose down           # Stop services
+# docker-compose logs -f        # View logs
+#
+# Connect to PostgreSQL:
+# DATABASE_URL="postgresql://hihr:hihr_dev_password@localhost:5432/hihr"
