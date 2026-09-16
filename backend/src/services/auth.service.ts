@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import prisma from '../config/database';
-import { generateAccessToken, generateRefreshToken } from '../utils/jwt';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt';
 import { AppError } from '../middleware/errorHandler';
 import { RegisterDTO, LoginDTO } from '../types';
 
@@ -130,6 +130,42 @@ export class AuthService {
             accessToken,
             refreshToken,
         };
+    }
+
+    async refreshToken(token: string) {
+        if (!token) {
+            throw new AppError('Refresh token is required', 400);
+        }
+
+        try {
+            const decoded = verifyRefreshToken(token);
+            const user = await prisma.user.findUnique({
+                where: { id: decoded.id },
+            });
+
+            if (!user || !user.isActive) {
+                throw new AppError('User not found or inactive', 401);
+            }
+
+            const accessToken = generateAccessToken({
+                id: user.id,
+                email: user.email,
+                fullName: user.fullName,
+            });
+
+            const refreshToken = generateRefreshToken({
+                id: user.id,
+                email: user.email,
+                fullName: user.fullName,
+            });
+
+            return {
+                accessToken,
+                refreshToken,
+            };
+        } catch (error: any) {
+            throw new AppError(error.message || 'Invalid or expired refresh token', 401);
+        }
     }
 
     async getMe(userId: string) {

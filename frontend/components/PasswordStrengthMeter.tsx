@@ -59,19 +59,19 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({ password 
             feedback.push('Add special character');
         }
 
-        // Determine label and color — weak→rose, medium→amber, strong→teal
+        // Determine label and color: weak to error, medium to warning, strong to success
         let label: string;
         let color: string;
 
         if (score <= 2) {
             label = 'Weak';
-            color = '#f43f5e'; // rose
+            color = '#ef4444';
         } else if (score <= 4) {
             label = 'Medium';
-            color = '#f59e0b'; // amber
+            color = '#f59e0b';
         } else {
             label = 'Strong';
-            color = '#14b8a6'; // teal
+            color = '#10b981';
         }
 
         return { score, label, color, feedback };
@@ -84,21 +84,21 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({ password 
     const percentage = (strength.score / 6) * 100;
 
     return (
-        <div className="mt-3 space-y-2">
+        <div className="mt-2.5 space-y-2">
             {/* Strength bar */}
             <div className="flex items-center gap-3">
-                <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148, 163, 184, 0.1)' }}>
+                <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-neutral-200">
                     <div
-                        className="h-full rounded-full transition-all duration-500"
+                        className="h-full rounded-full transition-all duration-300"
                         style={{
                             width: `${percentage}%`,
-                            background: strength.color
+                            backgroundColor: strength.color,
                         }}
                     />
                 </div>
                 <span
-                    className="text-xs font-semibold min-w-[50px]"
-                    style={{ color: strength.color, letterSpacing: '0.03em' }}
+                    className="text-xs font-semibold min-w-[50px] text-right"
+                    style={{ color: strength.color }}
                 >
                     {strength.label}
                 </span>
@@ -110,12 +110,7 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({ password 
                     {strength.feedback.slice(0, 3).map((tip, index) => (
                         <span
                             key={index}
-                            className="text-xs px-2 py-0.5 rounded-full"
-                            style={{
-                                background: 'rgba(148, 163, 184, 0.06)',
-                                color: '#64748b',
-                                border: '1px solid rgba(148, 163, 184, 0.1)',
-                            }}
+                            className="text-[11px] px-2 py-0.5 rounded-md bg-neutral-100 text-ink-secondary border border-border font-medium"
                         >
                             {tip}
                         </span>

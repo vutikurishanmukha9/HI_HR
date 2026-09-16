@@ -5,6 +5,7 @@ interface DashboardStatsProps {
     successRate: number;
     todaySent: number;
     pendingCount: number;
+    onReset?: () => void;
 }
 
 /**
@@ -16,6 +17,7 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({
     successRate,
     todaySent,
     pendingCount,
+    onReset,
 }) => {
     const stats = [
         {
@@ -26,9 +28,6 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
             ),
-            gradient: 'linear-gradient(135deg, #6366f1, #818cf8)',
-            bgColor: 'rgba(99, 102, 241, 0.08)',
-            borderColor: 'rgba(99, 102, 241, 0.15)',
         },
         {
             label: 'Success Rate',
@@ -38,9 +37,6 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             ),
-            gradient: 'linear-gradient(135deg, #14b8a6, #10b981)',
-            bgColor: 'rgba(20, 184, 166, 0.08)',
-            borderColor: 'rgba(20, 184, 166, 0.15)',
         },
         {
             label: 'Today',
@@ -50,9 +46,6 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
             ),
-            gradient: 'linear-gradient(135deg, #a855f7, #c084fc)',
-            bgColor: 'rgba(168, 85, 247, 0.08)',
-            borderColor: 'rgba(168, 85, 247, 0.15)',
         },
         {
             label: 'Pending',
@@ -62,38 +55,51 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             ),
-            gradient: 'linear-gradient(135deg, #f59e0b, #fbbf24)',
-            bgColor: 'rgba(245, 158, 11, 0.08)',
-            borderColor: 'rgba(245, 158, 11, 0.15)',
         },
     ];
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            {stats.map((stat, index) => (
+        <div className="mb-6 space-y-2">
+            {onReset && (
+                <div className="flex justify-between items-center px-1">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
+                        Live Campaign Progress
+                    </span>
+                    <button
+                        type="button"
+                        onClick={onReset}
+                        className="text-[11px] font-semibold text-danger hover:text-red-700 flex items-center gap-1 transition-colors"
+                        title="Reset campaign and clear statistics"
+                    >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span>Reset Campaign</span>
+                    </button>
+                </div>
+            )}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {stats.map((stat) => (
                 <div
                     key={stat.label}
-                    className="p-4 rounded-xl hover:scale-[1.02] transition-all duration-300"
-                    style={{
-                        background: stat.bgColor,
-                        border: `1px solid ${stat.borderColor}`,
-                        animationDelay: `${index * 100}ms`,
-                    }}
+                    className="surface-card p-4 border border-border shadow-xs"
                 >
                     <div className="flex items-center gap-3">
-                        <div
-                            className="p-2 rounded-lg text-white"
-                            style={{ background: stat.gradient }}
-                        >
+                        <div className="p-2 rounded-xl bg-accent-light text-accent border border-neutral-200 flex items-center justify-center flex-shrink-0">
                             {stat.icon}
                         </div>
-                        <div>
-                            <p className="text-[10px] uppercase tracking-wider font-medium" style={{ color: '#64748b', letterSpacing: '0.08em' }}>{stat.label}</p>
-                            <p className="text-xl font-bold" style={{ color: '#f1f5f9' }}>{stat.value}</p>
+                        <div className="min-w-0 flex-1">
+                            <p className="text-[11px] uppercase tracking-wider font-semibold text-ink-secondary truncate">
+                                {stat.label}
+                            </p>
+                            <p className="text-xl font-bold tabular-nums text-ink leading-tight truncate">
+                                {stat.value}
+                            </p>
                         </div>
                     </div>
                 </div>
             ))}
+            </div>
         </div>
     );
 };

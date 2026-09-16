@@ -18,9 +18,11 @@ node_modules/
 # ===================================
 # Build Output
 # ===================================
-/build
-/dist
-dist-ssr
+build/
+dist/
+dist-ssr/
+frontend/dist/
+backend/dist/
 
 # ===================================
 # Database Files (CRITICAL!)

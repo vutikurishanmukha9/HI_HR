@@ -42,33 +42,25 @@ export interface SendProgressState {
 }
 
 /**
- * Tracking statistics overview
+ * Delivery statistics overview
  */
 export interface TrackingStats {
   totalSent: number;
-  totalOpened: number;
-  openRate: number;
-  totalClicks: number;
-  uniqueClicks: number;
+  sentCount: number;
+  failedCount: number;
+  successRate: number;
 }
 
 /**
- * Detailed tracking record for a single recipient
+ * Detailed delivery record for a single recipient
  */
 export interface TrackingDetail {
   recipientEmail: string;
   subject?: string;
   campaignId?: string;
-  opened: boolean;
-  openCount: number;
-  firstOpenedAt?: string;
-  lastOpenedAt?: string;
-  clicks: number;
-  links: Array<{
-    url: string;
-    clicks: number;
-    firstClickedAt?: string;
-  }>;
+  status: 'sent' | 'failed';
+  sentAt?: string;
+  errorMessage?: string;
 }
 
 /**
@@ -79,4 +71,58 @@ export interface PaginationMeta {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+/**
+ * Saved email template item
+ */
+export interface SavedTemplate {
+  id: string;
+  name: string;
+  category: string;
+  subject: string;
+  body: string;
+  isSystem?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/**
+ * Spam and deliverability analysis issue
+ */
+export interface SpamIssue {
+  type: string;
+  message: string;
+  severity: 'high' | 'medium' | 'info';
+}
+
+/**
+ * Spam and deliverability analysis report
+ */
+export interface SpamReport {
+  score: number;
+  rating: 'Excellent' | 'Good' | 'Needs Improvement';
+  triggerWords: string[];
+  spamWordsFound?: string[];
+  issues: SpamIssue[];
+}
+
+/**
+ * Domain MX check result
+ */
+export interface DomainMxResult {
+  domain: string;
+  hasMx: boolean;
+  exchange?: string;
+  error?: string;
+}
+
+/**
+ * Saved email credential item from backend
+ */
+export interface SavedCredential {
+  id: string;
+  email: string;
+  isDefault: boolean;
+  createdAt: string;
 }

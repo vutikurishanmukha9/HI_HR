@@ -4,7 +4,7 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-import { TrackingStats, TrackingDetail, PaginationMeta } from '../types';
+import { TrackingStats, TrackingDetail, PaginationMeta, Recipient, SavedTemplate, DomainMxResult } from '../types';
 
 // Configuration
 const CONFIG = {
@@ -340,15 +340,11 @@ class ApiClient {
         credentialEmail: string;
         subject: string;
         body: string;
-        recipients: Array<{
-            email: string;
-            fullName: string;
-            companyName: string;
-            jobTitle?: string;
-        }>;
+        recipients: Recipient[];
         attachments?: File[];
         batchSize?: number;
         batchDelay?: number;
+        useJitter?: boolean;
     }) {
         // Convert File objects to base64 for JSON transport
         let attachmentsData: Array<{ filename: string; content: string; contentType: string }> | undefined;
@@ -377,6 +373,7 @@ class ApiClient {
             method: 'POST',
             body: JSON.stringify({
                 ...data,
+                useJitter: data.useJitter !== undefined ? data.useJitter : true,
                 attachments: attachmentsData,
             }),
             timeout: 30000, // Reduced to 30s since it returns instantly now
@@ -440,6 +437,54 @@ class ApiClient {
             };
         }>(`/track/details?${params.toString()}`, {
             method: 'GET',
+        });
+    }
+
+    /**
+     * Reset/clear tracking statistics
+     */
+    async resetTrackingStats(campaignId?: string) {
+        const query = campaignId ? `?campaignId=${encodeURIComponent(campaignId)}` : '';
+        return this.request<{
+            success: boolean;
+            message: string;
+        }>(`/track/reset${query}`, {
+            method: 'POST',
+        });
+    }
+
+    // ============= Template Endpoints =============
+
+    async getTemplates() {
+        return this.request<{ templates: SavedTemplate[] }>('/templates');
+    }
+
+    async createTemplate(template: { name: string; category?: string; subject: string; body: string }) {
+        return this.request<{ template: SavedTemplate }>('/templates', {
+            method: 'POST',
+            body: JSON.stringify(template),
+        });
+    }
+
+    async updateTemplate(id: string, template: Partial<{ name: string; category?: string; subject: string; body: string }>) {
+        return this.request<{ template: SavedTemplate }>(`/templates/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(template),
+        });
+    }
+
+    async deleteTemplate(id: string) {
+        return this.request<{ success: boolean; message: string }>(`/templates/${id}`, {
+            method: 'DELETE',
+        });
+    }
+
+    // ============= Domain MX Verification =============
+
+    async validateDomains(emails: string[]) {
+        return this.request<{ results: Record<string, DomainMxResult> }>('/campaigns/validate-domains', {
+            method: 'POST',
+            body: JSON.stringify({ emails }),
         });
     }
 

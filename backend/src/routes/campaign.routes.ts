@@ -26,6 +26,9 @@ router.post('/upload-recipients', uploadLimiter, upload.single('file'), campaign
 // Send campaign emails via backend (with email rate limit)
 router.post('/send', emailLimiter, validate(sendCampaignSchema), campaignController.sendCampaign);
 
+// Validate recipient domains via DNS MX lookup
+router.post('/validate-domains', campaignController.validateDomains);
+
 export default router;
 
 

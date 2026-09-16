@@ -50,7 +50,7 @@ describe('Encryption Utilities', () => {
         });
 
         it('should handle unicode characters', () => {
-            const unicodeText = '密码 пароль 🔐';
+            const unicodeText = '密码 пароль secret-key-alpha';
             const encrypted = encrypt(unicodeText);
             expect(encrypted).toBeDefined();
         });
@@ -74,7 +74,7 @@ describe('Encryption Utilities', () => {
         });
 
         it('should handle unicode characters', () => {
-            const unicodeText = '密码 пароль 🔐';
+            const unicodeText = '密码 пароль secret-key-alpha';
             const encrypted = encrypt(unicodeText);
             const decrypted = decrypt(encrypted);
 

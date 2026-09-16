@@ -3,14 +3,13 @@ import React from 'react';
 /**
  * Skeleton Loader Components
  * Shimmer effect placeholders for loading states
- * Uses warm slate shimmer on #141625 card background
+ * Uses animate-shimmer class (subtle opacity pulse on paper-3 surface)
  */
 
 // Base skeleton with shimmer
 export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
     <div
-        className={`animate-pulse rounded ${className}`}
-        style={{ background: 'linear-gradient(90deg, rgba(148, 163, 184, 0.04) 0%, rgba(148, 163, 184, 0.1) 50%, rgba(148, 163, 184, 0.04) 100%)', backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite' }}
+        className={`animate-shimmer rounded ${className}`}
     />
 );
 
@@ -25,7 +24,7 @@ export const SkeletonText: React.FC<{ lines?: number; className?: string }> = ({
 
 // Card skeleton
 export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' }) => (
-    <div className={`glass-card p-6 space-y-4 ${className}`}>
+    <div className={`surface-card p-6 space-y-4 ${className}`}>
         <div className="flex items-center gap-4">
             <Skeleton className="w-12 h-12 rounded-xl" />
             <div className="flex-1 space-y-2">
@@ -39,7 +38,7 @@ export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' 
 
 // Table row skeleton
 export const SkeletonTableRow: React.FC<{ columns?: number }> = ({ columns = 4 }) => (
-    <tr className="animate-pulse">
+    <tr>
         {Array.from({ length: columns }).map((_, i) => (
             <td key={i} className="p-4">
                 <Skeleton className="h-4 w-full" />
@@ -52,7 +51,7 @@ export const SkeletonTableRow: React.FC<{ columns?: number }> = ({ columns = 4 }
 export const SkeletonStats: React.FC = () => (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="p-4 rounded-xl space-y-2" style={{ background: 'rgba(148, 163, 184, 0.04)', border: '1px solid rgba(148, 163, 184, 0.08)' }}>
+            <div key={i} className="surface-card p-4 space-y-2">
                 <Skeleton className="h-4 w-20" />
                 <Skeleton className="h-8 w-16" />
             </div>

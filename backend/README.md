@@ -1,158 +1,115 @@
-# StreamMail Backend API
+# HiHR Backend API
 
-Backend server for the StreamMail cold email outreach platform built with Node.js, Express, TypeScript, and PostgreSQL.
+The Express & TypeScript REST API server powering the HiHR Cold Email Outreach platform. Designed for high deliverability, security, and real-time dispatch monitoring.
 
-## Features
+---
 
-- 🔐 **JWT Authentication** - Secure user authentication with access and refresh tokens
-- 🗄️ **PostgreSQL Database** - Robust data storage with Prisma ORM
-- 🔒 **Encrypted Credentials** - AES-256 encryption for email app passwords
-- 📧 **Email Campaign Management** - Create, schedule, and manage email campaigns
-- 📊 **Recipient Management** - Upload recipients from Excel files
-- 🛡️ **Security** - Rate limiting, CORS, helmet, input validation
-- 📝 **TypeScript** - Full type safety throughout the codebase
+## Core Capabilities
+
+- **JWT Authentication & Session Control**: Access and refresh tokens with account lockout protection (5 failed attempts = 30-minute lockout).
+- **AES-256 Encrypted Credential Vault**: Google App Passwords encrypted at rest using AES-256-CBC with SHA-256 key entropy derivation. Pre-authenticated via Gmail SMTP before saving.
+- **Native DNS MX Pre-Flight Engine**: Validates recipient domain mail exchange records via Node's native `dns.promises.resolveMx` with in-memory caching and batching to prevent hard bounces.
+- **Human-like Smart Jitter Dispatch**: Randomized batch delays (+/-20%) and individual email delays (300–800ms) to evade automated spam filter heuristics.
+- **Saved Templates Engine**: Full CRUD support for custom email templates and automatic seeding of curated starter templates.
+- **Authenticated WebSocket Progress**: Real-time Socket.IO dispatch updates secured via JWT authentication and strict campaign room multi-tenant isolation.
+- **Input Sanitization**: CRLF injection prevention on email subjects, executable attachment blocking, and Zod schema validation.
+
+---
 
 ## Prerequisites
 
 - Node.js (v18 or higher)
-- PostgreSQL database
+- SQLite (default for development: `prisma/dev.db`) or PostgreSQL (production)
 - npm or yarn
 
-## Installation
+---
+
+## Setup & Installation
 
 1. **Install dependencies:**
    ```bash
    npm install
    ```
 
-2. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   ```
-   Then edit `.env` with your configuration:
-   - `DATABASE_URL`: PostgreSQL connection string
-   - `JWT_SECRET`: Secret key for JWT tokens
-   - `ENCRYPTION_KEY`: 32-character key for AES-256 encryption
-   - Other configuration as needed
+2. **Configure environment variables:**
+   Create `.env` in the `backend/` root directory:
+   ```env
+   NODE_ENV=development
+   PORT=5000
 
-3. **Set up the database:**
+   # Database
+   DATABASE_URL="file:./dev.db"
+
+   # JWT Configuration
+   JWT_SECRET=your-jwt-access-secret-min-32-chars
+   REFRESH_TOKEN_SECRET=your-jwt-refresh-secret-min-32-chars
+   JWT_EXPIRES_IN=15m
+   REFRESH_TOKEN_EXPIRES_IN=7d
+
+   # AES-256 Key (64 hex characters or 32 characters)
+   ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+
+   # Allowed CORS Origin
+   FRONTEND_URL=http://localhost:3000
+   ```
+
+3. **Initialize the database:**
    ```bash
-   npm run prisma:generate
-   npm run prisma:migrate
+   npx prisma db push
    ```
 
 4. **Start the development server:**
    ```bash
    npm run dev
    ```
+   The backend API will start on `http://localhost:5000`.
 
-The server will start on `http://localhost:5000`
+---
 
-## API Endpoints
+## API Endpoints Overview
 
-### Authentication
+### Authentication (`/api/auth`)
+- `POST /api/auth/register` - Create a new user account
+- `POST /api/auth/login` - Authenticate with email/password
+- `POST /api/auth/refresh` - Issue new access token using refresh token
+- `POST /api/auth/logout` - Revoke session
+- `GET /api/auth/me` - Get current authenticated user profile
 
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/me` - Get current user (requires auth)
+### Credentials (`/api/credentials`)
+- `GET /api/credentials` - List user's saved Gmail sender accounts
+- `POST /api/credentials` - Verify SMTP connection and save encrypted credentials
+- `DELETE /api/credentials/:id` - Delete saved credential
 
-### Email Credentials
+### Templates (`/api/templates`)
+- `GET /api/templates` - List templates (custom + system starters)
+- `POST /api/templates` - Create a new email template
+- `PUT /api/templates/:id` - Update template name, subject, or body
+- `DELETE /api/templates/:id` - Delete custom template
 
-- `POST /api/credentials` - Save email credentials (requires auth)
-- `GET /api/credentials` - Get user's credentials (requires auth)
-- `DELETE /api/credentials/:id` - Delete credential (requires auth)
+### Campaigns (`/api/campaigns`)
+- `POST /api/campaigns/send` - Launch campaign with batching and smart jitter
+- `POST /api/campaigns/validate-domains` - Verify MX DNS records for recipient domains
+- `GET /api/campaigns/run/:runId/status` - Polling fallback for campaign progress
+- `GET /api/campaigns` - List user campaigns (paginated)
+- `GET /api/campaigns/:id` - Get specific campaign details
+- `DELETE /api/campaigns/:id` - Delete campaign record
 
-### Campaigns
+### Delivery Analytics (`/api/track`)
+- `GET /api/track/stats` - Summary statistics (sent, failed, total)
+- `GET /api/track/details` - Detailed per-recipient delivery logs
+- `POST /api/track/reset` - Reset campaign statistics
 
-- `POST /api/campaigns` - Create new campaign (requires auth)
-- `GET /api/campaigns` - Get user's campaigns (requires auth)
-- `GET /api/campaigns/:id` - Get campaign details (requires auth)
-- `PATCH /api/campaigns/:id` - Update campaign (requires auth)
-- `DELETE /api/campaigns/:id` - Delete campaign (requires auth)
-- `POST /api/campaigns/upload-recipients` - Upload recipients from Excel (requires auth)
+---
 
-## Project Structure
+## Verification & Testing
 
+```bash
+# Run TypeScript compilation
+npm run build
+
+# Run automated new features test suite
+node scripts/test_new_features.js
+
+# Run Jest unit test suite
+npm test
 ```
-backend/
-├── prisma/
-│   └── schema.prisma          # Database schema
-├── src/
-│   ├── config/
-│   │   ├── database.ts        # Prisma client
-│   │   └── env.ts             # Environment config
-│   ├── controllers/           # Request handlers
-│   ├── middleware/            # Express middleware
-│   ├── routes/                # API routes
-│   ├── services/              # Business logic
-│   ├── types/                 # TypeScript types
-│   ├── utils/                 # Utility functions
-│   └── server.ts              # Main server file
-├── uploads/                   # File upload directory
-├── .env.example               # Environment template
-├── package.json
-└── tsconfig.json
-```
-
-## Scripts
-
-- `npm run dev` - Start development server with hot reload
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run prisma:generate` - Generate Prisma client
-- `npm run prisma:migrate` - Run database migrations
-- `npm run prisma:studio` - Open Prisma Studio
-
-## Security Features
-
-- **Password Hashing**: bcrypt with 10 salt rounds
-- **JWT Tokens**: Short-lived access tokens (15min) + refresh tokens (7d)
-- **Encryption**: AES-256-CBC for sensitive data
-- **Rate Limiting**: 100 requests per 15 minutes
-- **Input Validation**: Zod schemas for all endpoints
-- **CORS**: Configured for frontend domain only
-- **Helmet**: Security headers
-
-## Database Schema
-
-- **Users**: User accounts with authentication
-- **EmailCredentials**: Encrypted email credentials
-- **Campaigns**: Email campaigns with configuration
-- **Recipients**: Campaign recipients with status tracking
-- **Attachments**: File attachments for campaigns
-
-## Development
-
-The backend uses:
-- **Express** for the web framework
-- **Prisma** for database ORM
-- **TypeScript** for type safety
-- **Zod** for validation
-- **Nodemailer** for email sending
-- **JWT** for authentication
-
-## Production Deployment
-
-1. Build the project:
-   ```bash
-   npm run build
-   ```
-
-2. Set environment to production in `.env`:
-   ```
-   NODE_ENV=production
-   ```
-
-3. Run migrations:
-   ```bash
-   npm run prisma:migrate
-   ```
-
-4. Start the server:
-   ```bash
-   npm start
-   ```
-
-## License
-
-Private - For demonstration purposes

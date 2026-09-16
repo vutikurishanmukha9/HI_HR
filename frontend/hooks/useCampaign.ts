@@ -76,13 +76,6 @@ export function useCampaign() {
                 errorMessage = error.message || error.error || JSON.stringify(error);
             }
 
-            // Handle "already exists" - not really an error
-            if (errorMessage.toLowerCase().includes('already exists')) {
-                setCredentials(creds);
-                setStep(2);
-                return { success: true };
-            }
-
             return { success: false, error: errorMessage };
         }
     }, []);
@@ -106,10 +99,11 @@ export function useCampaign() {
 
     // Handle sending campaign
     const handleSendCampaign = useCallback(async (config: {
-        time?: Date;
+        time?: Date | null;
         recipientsToSend: Recipient[];
         batchSize: number;
         batchDelay: number;
+        useJitter?: boolean;
     }) => {
         if (!credentials) return;
 
@@ -136,6 +130,7 @@ export function useCampaign() {
                 attachments: emailTemplate.attachments,
                 batchSize: config.batchSize,
                 batchDelay: config.batchDelay,
+                useJitter: config.useJitter,
             });
 
             if (!result.campaignRunId) {
@@ -153,7 +148,12 @@ export function useCampaign() {
             const runId = result.campaignRunId;
 
             // 2. Setup WebSocket
-            socketRef.current = io(API_BASE_URL, { transports: ['websocket', 'polling'] });
+            socketRef.current = io(API_BASE_URL, {
+                transports: ['websocket', 'polling'],
+                auth: {
+                    token: localStorage.getItem('accessToken') || '',
+                },
+            });
             
             socketRef.current.on('connect', () => {
                 console.log('WebSocket connected, joining campaign run:', runId);

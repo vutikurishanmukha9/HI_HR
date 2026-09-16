@@ -5,46 +5,37 @@ interface StatCardProps {
     value: string | number;
     subtitle?: string;
     icon: React.ReactNode;
-    gradient?: string;
 }
 
+/**
+ * StatCard Component
+ * Displays a single metric card using the Hallmark design system.
+ */
 const StatCard: React.FC<StatCardProps> = ({ 
     title, 
     value, 
     subtitle, 
-    icon,
-    gradient = 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%)'
+    icon
 }) => {
     return (
-        <div className="glass-card p-5 relative overflow-hidden group">
-            {/* Subtle background glow effect on hover */}
-            <div 
-                className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 rounded-2xl"
-                style={{ background: gradient }}
-            />
-            
-            <div className="relative z-10 flex items-start justify-between">
-                <div>
-                    <p className="text-sm font-medium" style={{ color: '#94a3b8' }}>
+        <div className="surface-card p-5 relative overflow-hidden border border-border shadow-xs">
+            <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-ink-secondary truncate">
                         {title}
                     </p>
-                    <h3 className="text-3xl font-extrabold mt-2 mb-1" style={{ color: '#f8fafc', fontFamily: "'Outfit', sans-serif" }}>
+                    <h3 className="text-2xl font-bold mt-1.5 mb-0.5 text-ink tabular-nums leading-tight truncate">
                         {value}
                     </h3>
                     {subtitle && (
-                        <p className="text-xs" style={{ color: '#64748b' }}>
+                        <p className="text-xs text-ink-muted truncate">
                             {subtitle}
                         </p>
                     )}
                 </div>
                 
-                <div 
-                    className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-500"
-                    style={{ background: gradient }}
-                >
-                    <div className="text-white">
-                        {icon}
-                    </div>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-accent-light text-accent border border-neutral-200 flex-shrink-0">
+                    {icon}
                 </div>
             </div>
         </div>

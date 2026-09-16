@@ -57,11 +57,8 @@ export const sendCampaignSchema = z.object({
     subject: z.string().min(1, 'Subject is required').max(500, 'Subject too long'),
     body: z.string().min(1, 'Email body is required'),
     recipients: z.array(z.object({
-        email: z.string().email('Invalid recipient email'),
-        fullName: z.string().min(1, 'Full name is required'),
-        companyName: z.string().min(1, 'Company name is required'),
-        jobTitle: z.string().optional(),
-    })).min(1, 'At least one recipient is required').max(500, 'Maximum 500 recipients per batch'),
+        email: z.string().min(1, 'Recipient email is required'),
+    }).passthrough()).min(1, 'At least one recipient is required').max(500, 'Maximum 500 recipients per batch'),
     attachments: z.array(z.object({
         filename: z.string(),
         content: z.string(), // base64 encoded

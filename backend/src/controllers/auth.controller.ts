@@ -21,6 +21,20 @@ export class AuthController {
         }
     }
 
+    async refreshToken(req: Request, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { refreshToken } = req.body;
+            const result = await authService.refreshToken(refreshToken);
+            res.json(result);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async logout(req: Request, res: Response): Promise<void> {
+        res.json({ message: 'Logged out successfully' });
+    }
+
     async getMe(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
         try {
             const user = await authService.getMe(req.user!.id);

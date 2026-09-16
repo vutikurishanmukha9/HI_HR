@@ -93,6 +93,34 @@ export function useAnalytics(options: UseAnalyticsOptions = { autoRefreshInterva
         setPage(1); // Reset to first page when filtering
     };
 
+    const resetStats = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const res = await apiClient.resetTrackingStats(selectedCampaign || undefined);
+            if (res.success) {
+                setStats({
+                    totalSent: 0,
+                    sentCount: 0,
+                    failedCount: 0,
+                    successRate: 0,
+                });
+                setDetails([]);
+                setPagination(null);
+                setAvailableCampaigns([]);
+                await fetchAnalytics(false);
+                return { success: true };
+            }
+            return { success: false, error: 'Failed to reset statistics' };
+        } catch (err: any) {
+            const msg = err.message || 'Error resetting statistics';
+            setError(msg);
+            return { success: false, error: msg };
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return {
         stats,
         details,
@@ -105,6 +133,7 @@ export function useAnalytics(options: UseAnalyticsOptions = { autoRefreshInterva
         availableCampaigns,
         refresh: () => fetchAnalytics(false),
         silentRefresh: () => fetchAnalytics(true),
+        resetStats,
         setPage: handlePageChange,
         setLimit: handleLimitChange,
         setSelectedCampaign: handleCampaignChange,

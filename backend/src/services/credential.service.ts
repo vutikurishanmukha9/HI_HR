@@ -1,3 +1,4 @@
+import nodemailer from 'nodemailer';
 import prisma from '../config/database';
 import { encrypt, decrypt } from '../utils/encryption';
 import { AppError } from '../middleware/errorHandler';
@@ -5,38 +6,48 @@ import { EmailCredentialDTO } from '../types';
 
 export class CredentialService {
     async createCredential(userId: string, data: EmailCredentialDTO) {
-        // Check if credential already exists
-        const existing = await prisma.emailCredential.findUnique({
-            where: {
-                userId_email: {
-                    userId,
-                    email: data.email,
-                },
+        const cleanEmail = data.email.trim().toLowerCase();
+        const cleanPassword = (data.appPassword || '').replace(/\s+/g, '');
+
+        // Verify with Gmail SMTP before saving to ensure credentials are valid
+        const transporter = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            auth: {
+                user: cleanEmail,
+                pass: cleanPassword,
             },
         });
 
-        if (existing) {
-            throw new AppError('Credential with this email already exists', 400);
-        }
-
-        // If this is set as default, unset other defaults
-        if (data.isDefault) {
-            await prisma.emailCredential.updateMany({
-                where: { userId, isDefault: true },
-                data: { isDefault: false },
-            });
+        try {
+            await transporter.verify();
+        } catch (verifyErr: any) {
+            const msg = verifyErr.message || '';
+            if (msg.includes('535') || msg.includes('Username and Password not accepted') || msg.includes('BadCredentials')) {
+                throw new AppError(
+                    'Gmail rejected this App Password (535 Bad Credentials). Please ensure 2-Step Verification is active on your Google Account and generate a 16-character App Password at https://myaccount.google.com/apppasswords.',
+                    400
+                );
+            }
+            throw new AppError(`Gmail SMTP verification failed: ${msg}`, 400);
         }
 
         // Encrypt app password
-        const appPasswordEncrypted = encrypt(data.appPassword);
+        const appPasswordEncrypted = encrypt(cleanPassword);
 
-        // Create credential
+        // Enforce single sender account: delete any existing credentials for this user
+        await prisma.emailCredential.deleteMany({
+            where: { userId },
+        });
+
+        // Create the single verified sender credential
         const credential = await prisma.emailCredential.create({
             data: {
                 userId,
-                email: data.email,
+                email: cleanEmail,
                 appPasswordEncrypted,
-                isDefault: data.isDefault || false,
+                isDefault: true,
             },
             select: {
                 id: true,

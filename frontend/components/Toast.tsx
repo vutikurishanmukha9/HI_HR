@@ -110,34 +110,24 @@ const ToastItem: React.FC<{ toast: Toast; onClose: () => void }> = ({ toast, onC
         ),
     };
 
-    const colors: Record<ToastType, { gradient: string; border: string; iconBg: string; bg: string }> = {
-        success: { gradient: 'linear-gradient(135deg, #14b8a6, #10b981)', border: '#14b8a6', iconBg: 'linear-gradient(135deg, #14b8a6, #10b981)', bg: 'rgba(20, 184, 166, 0.1)' },
-        error: { gradient: 'linear-gradient(135deg, #f43f5e, #e11d48)', border: '#f43f5e', iconBg: 'linear-gradient(135deg, #f43f5e, #e11d48)', bg: 'rgba(244, 63, 94, 0.1)' },
-        warning: { gradient: 'linear-gradient(135deg, #f59e0b, #f97316)', border: '#f59e0b', iconBg: 'linear-gradient(135deg, #f59e0b, #f97316)', bg: 'rgba(245, 158, 11, 0.1)' },
-        info: { gradient: 'linear-gradient(135deg, #6366f1, #818cf8)', border: '#6366f1', iconBg: 'linear-gradient(135deg, #6366f1, #818cf8)', bg: 'rgba(99, 102, 241, 0.1)' },
+    const styles: Record<ToastType, { bg: string; text: string; border: string }> = {
+        success: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+        error: { bg: 'bg-danger-light', text: 'text-danger', border: 'border-red-200' },
+        warning: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
+        info: { bg: 'bg-neutral-100', text: 'text-neutral-800', border: 'border-neutral-200' },
     };
 
-    const c = colors[toast.type];
+    const s = styles[toast.type];
 
     return (
-        <div
-            className="pointer-events-auto p-4 flex items-start gap-3 animate-slide-in rounded-xl"
-            style={{
-                background: c.bg,
-                borderLeft: `3px solid ${c.border}`,
-                backdropFilter: 'blur(24px)',
-                border: `1px solid rgba(148, 163, 184, 0.12)`,
-                borderLeftColor: c.border,
-                borderLeftWidth: '3px',
-            }}
-        >
-            <div className="p-2 rounded-lg text-white flex-shrink-0" style={{ background: c.iconBg }}>
+        <div className="pointer-events-auto surface-card p-3.5 flex items-start gap-3 border border-border shadow-lg bg-card rounded-xl animate-fadeIn">
+            <div className={`p-1.5 rounded-lg flex-shrink-0 ${s.bg} ${s.text} border ${s.border}`}>
                 {icons[toast.type]}
             </div>
             <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm" style={{ color: '#f1f5f9' }}>{toast.title}</p>
+                <p className="font-semibold text-xs text-ink leading-snug">{toast.title}</p>
                 {toast.message && (
-                    <p className="text-sm mt-1" style={{ color: '#94a3b8' }}>{toast.message}</p>
+                    <p className="text-xs text-ink-muted mt-0.5 leading-relaxed">{toast.message}</p>
                 )}
             </div>
             <button
@@ -147,11 +137,10 @@ const ToastItem: React.FC<{ toast: Toast; onClose: () => void }> = ({ toast, onC
                     e.stopPropagation();
                     onClose();
                 }}
-                className="p-2 -m-2 rounded-lg transition-all cursor-pointer flex-shrink-0"
-                style={{ color: '#64748b' }}
+                className="p-1 -m-1 rounded-md text-ink-muted hover:text-ink hover:bg-neutral-100 transition-colors flex-shrink-0"
                 aria-label="Close notification"
             >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>

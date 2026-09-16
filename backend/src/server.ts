@@ -8,12 +8,15 @@ import { apiLimiter } from './middleware/rateLimit';
 import { securityHeaders, corsConfig, apiSecurityHeaders } from './middleware/security';
 import { requestIdMiddleware, requestLoggerMiddleware } from './middleware/requestLogger';
 import logger from './utils/logger';
+import { verifyAccessToken } from './utils/jwt';
+import campaignRunManager from './services/campaignRun.manager';
 
 // Import routes
 import authRoutes from './routes/auth.routes';
 import credentialRoutes from './routes/credential.routes';
 import campaignRoutes from './routes/campaign.routes';
 import trackingRoutes from './routes/tracking.routes';
+import templateRoutes from './routes/template.routes';
 
 const app: Application = express();
 const server = http.createServer(app);
@@ -28,11 +31,41 @@ export const io = new SocketIOServer(server, {
     transports: ['websocket', 'polling'],
 });
 
+// Socket.IO authentication middleware
+io.use((socket, next) => {
+    try {
+        const token = socket.handshake.auth?.token ||
+            (socket.handshake.headers.authorization?.startsWith('Bearer ')
+                ? socket.handshake.headers.authorization.substring(7)
+                : undefined);
+
+        if (!token) {
+            return next(new Error('Authentication required'));
+        }
+
+        const decoded = verifyAccessToken(token);
+        socket.data.user = decoded;
+        next();
+    } catch (error) {
+        next(new Error('Invalid or expired authentication token'));
+    }
+});
+
 io.on('connection', (socket) => {
-    logger.info(`WebSocket connected: ${socket.id}`);
+    const userId = socket.data.user?.id;
+    logger.info(`WebSocket connected: ${socket.id} (user: ${userId})`);
 
     // Client joins a room for their campaign run
     socket.on('join:campaign', (runId: string) => {
+        if (!runId) return;
+
+        const run = campaignRunManager.getRun(runId);
+        if (!run || run.userId !== userId) {
+            logger.warn(`Unauthorized campaign join attempt: socket ${socket.id} (user ${userId}) tried to join run ${runId}`);
+            socket.emit('error', { message: 'Unauthorized: You do not have access to this campaign run' });
+            return;
+        }
+
         socket.join(`campaign:${runId}`);
         logger.info(`Socket ${socket.id} joined campaign:${runId}`);
     });
@@ -74,6 +107,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/credentials', credentialRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/track', trackingRoutes);
+app.use('/api/templates', templateRoutes);
 
 // Error handling
 app.use(notFound);

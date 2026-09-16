@@ -22,6 +22,11 @@ export const apiLimiter: RateLimitRequestHandler = rateLimit({
     message: 'Too many requests from this IP, please try again later',
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => {
+        // Exclude email tracking pixel and link click redirects from rate limiting
+        const url = req.originalUrl || req.url || '';
+        return url.includes('/track/open') || url.includes('/track/click');
+    },
     handler: (req, res) => {
         res.status(429).json({
             success: false,

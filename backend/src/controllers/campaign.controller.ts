@@ -9,6 +9,8 @@ import multer from 'multer';
 import path from 'path';
 import { env } from '../config/env';
 import campaignRunManager from '../services/campaignRun.manager';
+import trackingService from '../services/tracking.service';
+import emailValidatorService from '../services/emailValidator.service';
 import { io } from '../server';
 
 // Configure multer for file uploads
@@ -52,6 +54,7 @@ interface SendCampaignRequest {
     }>;
     batchSize?: number;
     batchDelay?: number;
+    useJitter?: boolean;
 }
 
 export class CampaignController {
@@ -138,15 +141,32 @@ export class CampaignController {
                 recipients,
                 attachments,
                 batchSize = 10,
-                batchDelay = 60
+                batchDelay = 60,
+                useJitter = true
             } = req.body as SendCampaignRequest;
+
+            const userId = req.user!.id;
 
             if (!recipients || recipients.length === 0) {
                 throw ApiError.badRequest('No recipients provided. Please upload at least one recipient.', ErrorCode.MISSING_REQUIRED_FIELD);
             }
 
-            if (!subject || !body) {
+            // Strip CR/LF to prevent SMTP header injection
+            const cleanSubject = (subject || '').replace(/[\r\n]+/g, ' ').trim();
+
+            if (!cleanSubject || !body) {
                 throw ApiError.badRequest('Subject and body are required. Please compose your email before sending.', ErrorCode.MISSING_REQUIRED_FIELD);
+            }
+
+            // Validate attachments against dangerous executable extensions
+            if (attachments && Array.isArray(attachments)) {
+                const dangerousExtensions = ['.exe', '.bat', '.cmd', '.scr', '.ps1', '.vbs', '.sh', '.msi', '.com', '.pif', '.jar'];
+                for (const att of attachments) {
+                    const ext = att.filename ? path.extname(att.filename).toLowerCase() : '';
+                    if (dangerousExtensions.includes(ext)) {
+                        throw ApiError.badRequest(`Attachment "${att.filename}" has a disallowed file extension.`, ErrorCode.INVALID_FILE_TYPE);
+                    }
+                }
             }
 
             // Validate recipient email formats - skip invalid ones instead of blocking
@@ -168,7 +188,7 @@ export class CampaignController {
             console.log(`[CampaignController] Received ${attachments?.length || 0} attachments`);
 
             // Get the user's email credential
-            const credentials = await credentialService.getCredentials(req.user!.id);
+            const credentials = await credentialService.getCredentials(userId);
 
             if (!credentials || credentials.length === 0) {
                 throw ApiError.badRequest(
@@ -187,26 +207,34 @@ export class CampaignController {
                         `Sender email "${credentialEmail}" not found in your saved credentials. Available credentials: ${availableEmails}. Please go back to Step 1 and add this email.`
                     );
                 }
-                credential = await credentialService.getCredentialById(req.user!.id, cred.id);
+                credential = await credentialService.getCredentialById(userId, cred.id);
             } else {
-                const defaultCred = credentials.find(c => c.isDefault);
+                const defaultCred = credentials.find(c => c.isDefault) || credentials[0];
                 if (!defaultCred) {
                     throw ApiError.badRequest(
-                        'No default email credential configured. Please go back to Step 1 and set up your sender email.',
+                        'No email credential configured. Please go back to Step 1 and set up your sender email.',
                         ErrorCode.MISSING_REQUIRED_FIELD
                     );
                 }
-                credential = await credentialService.getCredentialById(req.user!.id, defaultCred.id);
+                credential = await credentialService.getCredentialById(userId, defaultCred.id);
             }
 
             // Create a campaign run for tracking progress
             const allEmails = recipients.map(r => r.email);
-            const run = campaignRunManager.createRun(req.user!.id, allEmails);
+            const run = campaignRunManager.createRun(userId, allEmails);
             const runId = run.id;
 
             // Mark invalid emails as failed immediately
             invalidEmails.forEach(r => {
                 campaignRunManager.updateRecipient(runId, r.email, 'failed', `Invalid email format: "${r.email}". Skipped.`);
+                trackingService.recordDelivery({
+                    userId,
+                    recipientEmail: r.email,
+                    subject: cleanSubject,
+                    campaignId: runId,
+                    status: 'failed',
+                    errorMessage: `Invalid email format: "${r.email}". Skipped.`,
+                });
                 // Emit to WebSocket room
                 io.to(`campaign:${runId}`).emit('email:status', {
                     email: r.email,
@@ -237,13 +265,15 @@ export class CampaignController {
                         status: 'sending',
                     });
 
+                    let personalizedSubject = cleanSubject;
+
                     try {
                         // Personalize subject and body
-                        const personalizedSubject = emailService.personalizeContent(subject, recipient);
+                        personalizedSubject = emailService.personalizeContent(cleanSubject, recipient).replace(/[\r\n]+/g, ' ').trim();
                         const personalizedBody = emailService.personalizeContent(body, recipient);
 
-                        // Prepare email with tracking (pixel + link rewriting)
-                        const { html: trackedBody } = await emailService.prepareTrackedEmail({
+                        // Prepare clean HTML email (no tracking pixels, no redirect links)
+                        const { html: emailHtml } = await emailService.prepareTrackedEmail({
                             recipientEmail: recipient.email,
                             subject: personalizedSubject,
                             html: personalizedBody,
@@ -262,10 +292,19 @@ export class CampaignController {
                                 from: credential.email,
                                 to: recipient.email,
                                 subject: personalizedSubject,
-                                html: trackedBody,
+                                html: emailHtml,
                                 attachments: emailAttachments,
                             }
                         );
+
+                        // Record delivery success in delivery log
+                        await trackingService.recordDelivery({
+                            userId,
+                            recipientEmail: recipient.email,
+                            subject: personalizedSubject,
+                            campaignId: runId,
+                            status: 'sent',
+                        });
 
                         // Mark as sent
                         campaignRunManager.updateRecipient(runId, recipient.email, 'sent');
@@ -290,6 +329,16 @@ export class CampaignController {
                             friendlyError = 'Gmail rate limit reached. Please wait a few minutes and try again with fewer recipients.';
                         }
 
+                        // Record delivery failure in delivery log
+                        await trackingService.recordDelivery({
+                            userId,
+                            recipientEmail: recipient.email,
+                            subject: personalizedSubject,
+                            campaignId: runId,
+                            status: 'failed',
+                            errorMessage: friendlyError,
+                        });
+
                         // Mark as failed
                         campaignRunManager.updateRecipient(runId, recipient.email, 'failed', friendlyError);
                         io.to(`campaign:${runId}`).emit('email:status', {
@@ -299,12 +348,15 @@ export class CampaignController {
                         });
                     }
 
-                    // Batch delay - wait between batches
+                    // Batch delay - wait between batches (with smart jitter if enabled)
                     if ((i + 1) % batchSize === 0 && i < validRecipients.length - 1) {
-                        await new Promise(resolve => setTimeout(resolve, batchDelay * 1000));
+                        const jitterFactor = useJitter ? (0.8 + Math.random() * 0.4) : 1.0;
+                        const waitMs = Math.round(batchDelay * 1000 * jitterFactor);
+                        await new Promise(resolve => setTimeout(resolve, waitMs));
                     } else if (i < validRecipients.length - 1) {
-                        // Small delay between individual emails (300ms)
-                        await new Promise(resolve => setTimeout(resolve, 300));
+                        // Delay between individual emails (with natural jitter if enabled)
+                        const emailDelay = useJitter ? Math.floor(300 + Math.random() * 500) : 300;
+                        await new Promise(resolve => setTimeout(resolve, emailDelay));
                     }
                 }
 
@@ -320,6 +372,24 @@ export class CampaignController {
                 console.log(`[CampaignController] Campaign run ${runId} completed: ${finalRun?.sentCount} sent, ${finalRun?.failedCount} failed`);
             });
 
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * POST /api/campaigns/validate-domains
+     * Verify MX DNS records for recipient domains
+     */
+    async validateDomains(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+        try {
+            const { emails } = req.body;
+            if (!emails || !Array.isArray(emails)) {
+                throw ApiError.badRequest('Array of recipient emails is required', ErrorCode.MISSING_REQUIRED_FIELD);
+            }
+
+            const results = await emailValidatorService.validateEmailsMx(emails);
+            res.json({ results });
         } catch (error) {
             next(error);
         }

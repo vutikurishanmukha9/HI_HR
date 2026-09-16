@@ -2,6 +2,17 @@ import XLSX from 'xlsx';
 import { RecipientDTO } from '../types';
 
 /**
+ * Helper to sanitize header strings to camelCase (e.g. "First Name" -> "firstName")
+ */
+const sanitizeKey = (key: string): string => {
+    const cleaned = key.replace(/[^a-zA-Z0-9]/g, ' ').trim();
+    return cleaned.split(/\s+/).map((word, index) => {
+        if (index === 0) return word.toLowerCase();
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }).join('');
+};
+
+/**
  * Parses an Excel file and extracts recipient data
  */
 export const parseExcelFile = (buffer: Buffer): RecipientDTO[] => {
@@ -13,17 +24,21 @@ export const parseExcelFile = (buffer: Buffer): RecipientDTO[] => {
     const recipients: RecipientDTO[] = [];
 
     for (const row of data as any[]) {
-        const fullName = findValue(row, ['Full name', 'Name', 'Last name']);
-        const email = findValue(row, ['Email address', 'Email']);
-        const companyName = findValue(row, ['Company/organization name', 'Company', 'Organization']);
-        const jobTitle = findValue(row, ['Job title/designation', 'Job Title', 'Title', 'Designation']);
+        // Find the email using common patterns before sanitization
+        const email = findValue(row, ['Email address', 'Email', 'E-mail', 'Contact Email']);
+        
+        if (email) {
+            const sanitizedRow: Record<string, any> = {};
+            Object.keys(row).forEach(key => {
+                const camelKey = sanitizeKey(key);
+                if (camelKey) {
+                    sanitizedRow[camelKey] = String(row[key]).trim();
+                }
+            });
 
-        if (fullName && email && companyName) {
             recipients.push({
-                fullName,
-                email,
-                companyName,
-                jobTitle: jobTitle || undefined,
+                ...sanitizedRow,
+                email: email // explicitly set the email
             });
         }
     }

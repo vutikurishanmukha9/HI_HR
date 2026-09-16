@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import DOMPurify from 'dompurify';
 import { Credentials, Recipient, EmailTemplate, EmailStatus, SendProgressState } from '../types';
 
 interface ReviewAndSendProps {
@@ -9,7 +10,7 @@ interface ReviewAndSendProps {
     isSending: boolean;
     isCampaignFinished: boolean;
     scheduledTime: Date | null;
-    onScheduleOrSend: (config: { time: Date | null, batchSize: number, batchDelay: number, recipientsToSend: Recipient[] }) => void;
+    onScheduleOrSend: (config: { time: Date | null, batchSize: number, batchDelay: number, recipientsToSend: Recipient[], useJitter?: boolean }) => void;
     onCancelSchedule: () => void;
     onBack: () => void;
     onReset: () => void;
@@ -21,13 +22,37 @@ const StatusIndicator: React.FC<{ progress: SendProgressState }> = ({ progress }
 
     switch (status) {
         case EmailStatus.Queued:
-            return <span className="flex items-center text-xs font-medium" style={{ color: '#64748b' }}><span className="w-2 h-2 rounded-full mr-2" style={{ background: '#64748b' }} />Queued</span>;
+            return (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-neutral-100 text-neutral-600 border border-neutral-200 flex-shrink-0 whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 flex-shrink-0" />
+                    <span>Queued</span>
+                </span>
+            );
         case EmailStatus.Sending:
-            return <span className="flex items-center text-xs font-medium" style={{ color: '#06b6d4' }}><span className="w-2 h-2 rounded-full mr-2 animate-pulse" style={{ background: '#06b6d4' }} />Sending...</span>;
+            return (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-neutral-100 text-neutral-800 border border-neutral-300 flex-shrink-0 whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-900 animate-pulse flex-shrink-0" />
+                    <span>Sending…</span>
+                </span>
+            );
         case EmailStatus.Sent:
-            return <span className="flex items-center text-xs font-medium" style={{ color: '#14b8a6' }}><svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>Sent</span>;
+            return (
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 flex-shrink-0 whitespace-nowrap">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Sent</span>
+                </span>
+            );
         case EmailStatus.Failed:
-            return <span title={error || 'Error'} className="flex items-center text-xs font-medium cursor-help" style={{ color: '#fb7185' }}><svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>Failed</span>;
+            return (
+                <span title={error || 'Send failed'} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-danger-light text-danger border border-red-200 cursor-help flex-shrink-0 whitespace-nowrap">
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    <span>Failed</span>
+                </span>
+            );
         default:
             return null;
     }
@@ -44,6 +69,7 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
     const [scheduleError, setScheduleError] = useState('');
     const [batchSize, setBatchSize] = useState(10);
     const [batchDelay, setBatchDelay] = useState(60);
+    const [useJitter, setUseJitter] = useState(true);
 
     useEffect(() => {
         setSelectedEmails(recipients.map(r => r.email));
@@ -57,7 +83,7 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
     const sentCount = Object.values(sendProgress).filter((s: SendProgressState) => s.status === EmailStatus.Sent).length;
     const failedCount = Object.values(sendProgress).filter((s: SendProgressState) => s.status === EmailStatus.Failed).length;
     const campaignSize = campaignRecipients?.length ?? recipientsForCampaign.length;
-    const progressPercentage = campaignSize > 0 ? ((sentCount + failedCount) / campaignSize) * 100 : 0;
+    const progressPercentage = campaignSize > 0 ? Math.round(((sentCount + failedCount) / campaignSize) * 100) : 0;
 
     const getMinDateTime = () => {
         const now = new Date();
@@ -66,7 +92,13 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
     };
 
     const handleActionClick = () => {
-        const config = { time: null as Date | null, batchSize: Math.max(1, batchSize), batchDelay: Math.max(0, batchDelay), recipientsToSend: recipientsForCampaign };
+        const config = {
+            time: null as Date | null,
+            batchSize: Math.max(1, batchSize),
+            batchDelay: Math.max(0, batchDelay),
+            recipientsToSend: recipientsForCampaign,
+            useJitter
+        };
         if (isScheduling) {
             if (!scheduleDateTime) { setScheduleError('Please select a date and time.'); return; }
             const scheduleDate = new Date(scheduleDateTime);
@@ -82,98 +114,198 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
 
     const handleRecipientSelect = (email: string) => setSelectedEmails(prev => prev.includes(email) ? prev.filter(e => e !== email) : [...prev, email]);
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => setSelectedEmails(e.target.checked ? recipients.map(r => r.email) : []);
-    const getButtonText = () => isSending ? 'Sending...' : isScheduling ? 'Schedule Campaign' : `Send ${recipientsForCampaign.length} Emails`;
+    const getButtonText = () => isSending ? 'Sending…' : isScheduling ? 'Schedule Campaign' : `Launch Campaign (${recipientsForCampaign.length} Emails)`;
 
     return (
-        <div className="max-w-4xl mx-auto fade-in">
+        <div className="max-w-4xl mx-auto">
             {/* Header */}
-            <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-                    style={{ background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(59, 130, 246, 0.15))', border: '1px solid rgba(6, 182, 212, 0.25)' }}>
-                    <svg className="w-7 h-7" style={{ color: '#22d3ee' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent-light border border-neutral-200 text-accent mb-3 shadow-xs">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <h2 className="text-2xl font-bold mb-2" style={{ color: '#f1f5f9' }}>Review & Send</h2>
-                <p style={{ color: '#94a3b8', fontSize: '0.9375rem' }}>
-                    {isCampaignFinished ? 'Campaign complete!' : scheduledTime ? 'Campaign scheduled.' : 'Final review before sending'}
+                <h2 className="text-xl font-bold text-ink">Review & Launch</h2>
+                <p className="text-sm text-ink-muted mt-1">
+                    {isCampaignFinished ? 'Campaign execution completed!' : scheduledTime ? 'Campaign scheduled for dispatch.' : 'Verify recipients and outreach parameters before sending'}
                 </p>
             </div>
 
             {isReady ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Left Column - Summary */}
-                    <div className="space-y-6">
-                        <div className="rounded-xl p-5" style={{ background: 'rgba(148, 163, 184, 0.04)', border: '1px solid rgba(148, 163, 184, 0.12)' }}>
-                            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: '#f1f5f9' }}>
-                                <svg className="w-5 h-5" style={{ color: '#22d3ee' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    {/* Left Column - Summary & Controls */}
+                    <div className="space-y-5">
+                        <div className="surface-card p-5 border border-border shadow-xs space-y-4">
+                            <h3 className="text-sm font-bold text-ink flex items-center gap-2">
+                                <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                 </svg>
                                 Campaign Summary
                             </h3>
-                            <div className="space-y-3">
-                                <div className="flex justify-between"><span style={{ color: '#94a3b8' }}>Sender</span><span style={{ color: '#f1f5f9' }}>{credentials?.email}</span></div>
-                                <div className="flex justify-between"><span style={{ color: '#94a3b8' }}>Recipients</span><span style={{ color: '#f1f5f9' }}>{recipientsForCampaign.length} selected</span></div>
-                                <div className="flex justify-between"><span style={{ color: '#94a3b8' }}>Subject</span><span className="truncate max-w-[200px]" style={{ color: '#f1f5f9' }}>{emailTemplate.subject}</span></div>
+
+                            <div className="space-y-2.5 text-xs">
+                                <div className="flex justify-between items-center py-1.5 border-b border-border gap-2">
+                                    <span className="text-ink-secondary flex-shrink-0">From Account</span>
+                                    <span className="font-mono text-ink font-medium truncate text-right">{credentials?.email}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-1.5 border-b border-border gap-2">
+                                    <span className="text-ink-secondary flex-shrink-0">Target Outreach</span>
+                                    <span className="font-semibold text-ink truncate text-right">{recipientsForCampaign.length} recipients selected</span>
+                                </div>
+                                <div className="flex justify-between items-center py-1.5 border-b border-border gap-2">
+                                    <span className="text-ink-secondary flex-shrink-0">Subject</span>
+                                    <span className="font-medium text-ink truncate max-w-[220px] text-right" title={emailTemplate.subject}>{emailTemplate.subject}</span>
+                                </div>
                                 {emailTemplate.attachments && emailTemplate.attachments.length > 0 && (
-                                    <div className="flex justify-between"><span style={{ color: '#94a3b8' }}>Attachments</span><span style={{ color: '#f1f5f9' }}>{emailTemplate.attachments.length} files</span></div>
+                                    <div className="flex justify-between items-center py-1.5 border-b border-border gap-2">
+                                        <span className="text-ink-secondary flex-shrink-0">Attachments</span>
+                                        <span className="text-ink font-medium truncate text-right">{emailTemplate.attachments.length} files</span>
+                                    </div>
                                 )}
                             </div>
-                            <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(148, 163, 184, 0.1)' }}>
-                                <p className="text-sm mb-2" style={{ color: '#64748b' }}>Preview</p>
-                                <div className="p-3 rounded-lg max-h-32 overflow-y-auto text-sm" style={{ background: 'rgba(0,0,0,0.2)', color: '#94a3b8' }} dangerouslySetInnerHTML={{ __html: emailTemplate.body }} />
+
+                            <div className="pt-2">
+                                <p className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-1.5">Template Preview</p>
+                                <div
+                                    className="p-3 rounded-lg max-h-28 overflow-y-auto text-xs bg-neutral-50 border border-border text-ink-secondary leading-relaxed"
+                                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(emailTemplate.body) }}
+                                />
                             </div>
                         </div>
 
+                        {/* Completion / Scheduled / Send Options Card */}
                         {isCampaignFinished ? (
-                            <div className="rounded-xl p-5" style={{ background: 'rgba(20, 184, 166, 0.08)', border: '1px solid rgba(20, 184, 166, 0.2)' }}>
-                                <h4 className="font-semibold mb-4" style={{ color: '#f1f5f9' }}>Campaign Results</h4>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="text-center p-4 rounded-lg" style={{ background: 'rgba(20, 184, 166, 0.15)' }}>
-                                        <p className="text-3xl font-bold" style={{ color: '#14b8a6' }}>{sentCount}</p>
-                                        <p className="text-sm" style={{ color: '#5eead4' }}>Sent</p>
+                            <div className="surface-card p-5 border border-emerald-200 bg-emerald-50/20 shadow-xs space-y-4">
+                                <h4 className="font-bold text-sm text-ink flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                    Campaign Execution Summary
+                                </h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="text-center p-3.5 rounded-xl bg-white border border-emerald-200 shadow-xs">
+                                        <p className="text-2xl font-bold text-emerald-600 tabular-nums">{sentCount}</p>
+                                        <p className="text-xs font-medium text-ink-muted">Delivered</p>
                                     </div>
-                                    <div className="text-center p-4 rounded-lg" style={{ background: 'rgba(244, 63, 94, 0.15)' }}>
-                                        <p className="text-3xl font-bold" style={{ color: '#fb7185' }}>{failedCount}</p>
-                                        <p className="text-sm" style={{ color: '#fda4af' }}>Failed</p>
+                                    <div className="text-center p-3.5 rounded-xl bg-white border border-red-200 shadow-xs">
+                                        <p className="text-2xl font-bold text-danger tabular-nums">{failedCount}</p>
+                                        <p className="text-xs font-medium text-ink-muted">Failed</p>
                                     </div>
                                 </div>
-                                <button onClick={onReset} className="w-full mt-4 px-6 py-3 rounded-xl font-semibold text-white text-sm transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', boxShadow: '0 4px 15px rgba(6, 182, 212, 0.35)' }}>
-                                    Start New Campaign
+                                <button onClick={onReset} className="btn btn-primary w-full py-2.5 text-xs shadow-xs">
+                                    Start New Outreach Campaign
                                 </button>
                             </div>
                         ) : scheduledTime && !isSending ? (
-                            <div className="rounded-xl p-5" style={{ background: 'rgba(6, 182, 212, 0.08)', border: '1px solid rgba(6, 182, 212, 0.2)' }}>
-                                <p className="text-center mb-4" style={{ color: '#67e8f9' }}>Scheduled for:<br /><strong style={{ color: '#f1f5f9' }}>{scheduledTime.toLocaleString()}</strong></p>
-                                <div className="flex gap-3">
-                                    <button onClick={() => onScheduleOrSend({ time: null, batchSize, batchDelay, recipientsToSend: recipientsForCampaign })} className="flex-1 py-2 rounded-lg font-medium text-white text-sm" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)' }}>Send Now</button>
-                                    <button onClick={onCancelSchedule} className="flex-1 py-2 rounded-lg font-medium text-sm" style={{ background: 'rgba(148, 163, 184, 0.06)', border: '1px solid rgba(148, 163, 184, 0.15)', color: '#94a3b8' }}>Cancel</button>
+                            <div className="surface-card p-5 border border-neutral-200 bg-neutral-50 shadow-xs space-y-4">
+                                <div className="text-center space-y-1">
+                                    <p className="text-xs font-semibold text-ink-secondary uppercase tracking-wider">Scheduled Launch</p>
+                                    <p className="text-base font-bold text-ink">{scheduledTime.toLocaleString()}</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => onScheduleOrSend({ time: null, batchSize, batchDelay, recipientsToSend: recipientsForCampaign })}
+                                        className="btn btn-primary flex-1 text-xs py-2"
+                                    >
+                                        Send Immediately
+                                    </button>
+                                    <button onClick={onCancelSchedule} className="btn btn-secondary flex-1 text-xs py-2">
+                                        Cancel Schedule
+                                    </button>
                                 </div>
                             </div>
                         ) : (
-                            <div className="rounded-xl p-5" style={{ background: 'rgba(148, 163, 184, 0.04)', border: '1px solid rgba(148, 163, 184, 0.12)' }}>
-                                <h4 className="font-semibold mb-4" style={{ color: '#f1f5f9' }}>Sending Options</h4>
-                                <div className="grid grid-cols-2 gap-4 mb-4">
-                                    <div>
-                                        <label className="block text-sm mb-2" style={{ color: '#94a3b8', letterSpacing: '0.03em' }}>Batch Size</label>
-                                        <input type="number" value={batchSize} onChange={(e) => setBatchSize(parseInt(e.target.value, 10) || 1)} min="1" disabled={isSending} />
+                            <div className="surface-card p-5 border border-border shadow-xs space-y-4">
+                                <h4 className="font-bold text-sm text-ink">Throttling & Rate Control</h4>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="block text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
+                                            Batch Size
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={batchSize}
+                                            onChange={(e) => setBatchSize(parseInt(e.target.value, 10) || 1)}
+                                            min="1"
+                                            disabled={isSending}
+                                            className="input py-1.5 text-xs font-mono"
+                                        />
                                     </div>
-                                    <div>
-                                        <label className="block text-sm mb-2" style={{ color: '#94a3b8', letterSpacing: '0.03em' }}>Delay (sec)</label>
-                                        <input type="number" value={batchDelay} onChange={(e) => setBatchDelay(parseInt(e.target.value, 10) || 0)} min="0" disabled={isSending} />
+                                    <div className="space-y-1">
+                                        <label className="block text-[11px] font-semibold uppercase tracking-wider text-ink-secondary">
+                                            Delay (seconds)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={batchDelay}
+                                            onChange={(e) => setBatchDelay(parseInt(e.target.value, 10) || 0)}
+                                            min="0"
+                                            disabled={isSending}
+                                            className="input py-1.5 text-xs font-mono"
+                                        />
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3 mb-4">
-                                    <input id="schedule-toggle" type="checkbox" checked={isScheduling} onChange={(e) => setIsScheduling(e.target.checked)} disabled={isSending} className="w-4 h-4 rounded" />
-                                    <label htmlFor="schedule-toggle" className="text-sm" style={{ color: '#94a3b8' }}>Schedule for later</label>
+
+                                <div className="p-3 rounded-xl bg-neutral-50 border border-border space-y-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <label htmlFor="jitter-toggle" className="text-xs font-semibold text-ink cursor-pointer flex items-center gap-1.5">
+                                            <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                            </svg>
+                                            Human-like Smart Jitter (Anti-Bot)
+                                        </label>
+                                        <input
+                                            id="jitter-toggle"
+                                            type="checkbox"
+                                            checked={useJitter}
+                                            onChange={(e) => setUseJitter(e.target.checked)}
+                                            disabled={isSending}
+                                            className="w-4 h-4 rounded text-accent border-border"
+                                        />
+                                    </div>
+                                    <p className="text-[11px] text-ink-muted leading-relaxed">
+                                        Varies delay between batches (+/-20%) and email sends (300-800ms) to evade automated spam filter detection.
+                                    </p>
                                 </div>
+
+                                <div className="flex items-center gap-2 pt-1">
+                                    <input
+                                        id="schedule-toggle"
+                                        type="checkbox"
+                                        checked={isScheduling}
+                                        onChange={(e) => setIsScheduling(e.target.checked)}
+                                        disabled={isSending}
+                                        className="w-4 h-4 rounded text-accent border-border"
+                                    />
+                                    <label htmlFor="schedule-toggle" className="text-xs font-medium text-ink cursor-pointer">
+                                        Schedule campaign for a future date & time
+                                    </label>
+                                </div>
+
                                 {isScheduling && (
-                                    <input type="datetime-local" value={scheduleDateTime} onChange={(e) => setScheduleDateTime(e.target.value)} min={getMinDateTime()} disabled={isSending} className="w-full mb-4" />
+                                    <div className="pt-1">
+                                        <input
+                                            type="datetime-local"
+                                            value={scheduleDateTime}
+                                            onChange={(e) => setScheduleDateTime(e.target.value)}
+                                            min={getMinDateTime()}
+                                            disabled={isSending}
+                                            className="input py-1.5 text-xs"
+                                        />
+                                    </div>
                                 )}
-                                {scheduleError && <p className="text-sm mb-4" style={{ color: '#fb7185' }}>{scheduleError}</p>}
-                                <div className="flex gap-3">
-                                    <button onClick={onBack} disabled={isSending} className="px-6 py-3 rounded-xl font-medium text-sm transition-all" style={{ border: '1px solid rgba(148, 163, 184, 0.15)', color: '#94a3b8' }}>← Back</button>
-                                    <button onClick={handleActionClick} disabled={isSending || (isScheduling && !scheduleDateTime) || recipientsForCampaign.length === 0} className="flex-1 py-3 rounded-xl font-semibold text-white text-sm transition-all disabled:opacity-40 hover:scale-[1.02] active:scale-[0.98]" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)', boxShadow: '0 4px 20px rgba(6, 182, 212, 0.35)' }}>
+
+                                {scheduleError && (
+                                    <p className="text-xs text-danger font-medium">{scheduleError}</p>
+                                )}
+
+                                <div className="flex gap-2 pt-2">
+                                    <button onClick={onBack} disabled={isSending} className="btn btn-secondary text-xs px-4 py-2">
+                                        Back
+                                    </button>
+                                    <button
+                                        onClick={handleActionClick}
+                                        disabled={isSending || (isScheduling && !scheduleDateTime) || recipientsForCampaign.length === 0}
+                                        className="btn btn-primary flex-1 text-xs py-2.5 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
+                                    >
                                         {getButtonText()}
                                     </button>
                                 </div>
@@ -181,44 +313,73 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                         )}
                     </div>
 
-                    {/* Right Column - Recipients */}
-                    <div className="space-y-4">
+                    {/* Right Column - Recipient Checklist & Progress */}
+                    <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold" style={{ color: '#f1f5f9' }}>Recipients</h3>
+                            <h3 className="text-sm font-bold text-ink">Recipients Queue</h3>
                             {(isSending || isCampaignFinished) && (
-                                <span className="text-sm" style={{ color: '#94a3b8' }}>{sentCount + failedCount} / {campaignSize}</span>
+                                <span className="text-xs font-mono text-ink-muted">
+                                    {sentCount + failedCount} / {campaignSize} ({progressPercentage}%)
+                                </span>
                             )}
                         </div>
 
                         {(isSending || isCampaignFinished) && (
-                            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(148, 163, 184, 0.1)' }}>
-                                <div className="h-full transition-all duration-500 rounded-full" style={{ width: `${progressPercentage}%`, background: 'linear-gradient(90deg, #06b6d4, #3b82f6)' }} />
+                            <div className="h-2 rounded-full overflow-hidden bg-neutral-200">
+                                <div
+                                    className="h-full rounded-full bg-accent transition-all duration-300"
+                                    style={{ width: `${progressPercentage}%` }}
+                                />
                             </div>
                         )}
 
-                        <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(148, 163, 184, 0.04)', border: '1px solid rgba(148, 163, 184, 0.12)' }}>
+                        <div className="border border-border rounded-xl overflow-hidden shadow-xs bg-card">
                             {!isSending && !isCampaignFinished && (
-                                <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(148, 163, 184, 0.1)' }}>
+                                <div className="px-4 py-2.5 flex items-center justify-between border-b border-border bg-neutral-50">
                                     <div className="flex items-center gap-2">
-                                        <input id="select-all" type="checkbox" checked={recipients.length > 0 && selectedEmails.length === recipients.length} onChange={handleSelectAll} className="w-4 h-4 rounded" />
-                                        <label htmlFor="select-all" className="text-sm" style={{ color: '#94a3b8' }}>Select All</label>
+                                        <input
+                                            id="select-all"
+                                            type="checkbox"
+                                            checked={recipients.length > 0 && selectedEmails.length === recipients.length}
+                                            onChange={handleSelectAll}
+                                            className="w-4 h-4 rounded text-accent border-border"
+                                        />
+                                        <label htmlFor="select-all" className="text-xs font-semibold text-ink cursor-pointer">
+                                            Select All Contacts
+                                        </label>
                                     </div>
-                                    <span className="text-sm" style={{ color: '#64748b' }}>{selectedEmails.length} / {recipients.length}</span>
+                                    <span className="text-xs font-mono text-ink-muted">
+                                        {selectedEmails.length} of {recipients.length}
+                                    </span>
                                 </div>
                             )}
-                            <div className="max-h-80 overflow-y-auto">
+
+                            <div className="max-h-96 overflow-y-auto divide-y divide-border">
                                 {displayList.map((recipient) => (
-                                    <div key={recipient.email} className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(148, 163, 184, 0.06)' }}>
-                                        <div className="flex items-center gap-3">
+                                    <div key={recipient.email} className="px-4 py-3 flex items-center justify-between gap-3 hover:bg-neutral-50 transition-colors">
+                                        <div className="flex items-center gap-3 min-w-0 flex-1">
                                             {!isSending && !isCampaignFinished && (
-                                                <input type="checkbox" checked={selectedEmails.includes(recipient.email)} onChange={() => handleRecipientSelect(recipient.email)} className="w-4 h-4 rounded" />
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedEmails.includes(recipient.email)}
+                                                    onChange={() => handleRecipientSelect(recipient.email)}
+                                                    className="w-4 h-4 rounded text-accent border-border flex-shrink-0"
+                                                />
                                             )}
-                                            <div>
-                                                <p className="text-sm font-medium" style={{ color: '#f1f5f9' }}>{recipient.fullName}</p>
-                                                <p className="text-xs" style={{ color: '#64748b' }}>{recipient.email}</p>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-xs font-semibold text-ink truncate">
+                                                    {recipient.fullName || recipient.firstName || 'Candidate'}
+                                                </p>
+                                                <p className="text-[11px] font-mono text-ink-muted truncate">
+                                                    {recipient.email}
+                                                </p>
                                             </div>
                                         </div>
-                                        {(isSending || isCampaignFinished) && <StatusIndicator progress={sendProgress[recipient.email] || { status: EmailStatus.Queued }} />}
+                                        {(isSending || isCampaignFinished) && (
+                                            <div className="flex-shrink-0">
+                                                <StatusIndicator progress={sendProgress[recipient.email] || { status: EmailStatus.Queued }} />
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -226,9 +387,11 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                     </div>
                 </div>
             ) : (
-                <div className="text-center p-8 rounded-xl" style={{ background: 'rgba(244, 63, 94, 0.08)', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
-                    <p className="mb-4" style={{ color: '#fb7185' }}>Please complete all previous steps first.</p>
-                    <button onClick={onBack} className="px-6 py-3 rounded-xl font-semibold text-white text-sm" style={{ background: 'linear-gradient(135deg, #06b6d4, #3b82f6)' }}>Go Back</button>
+                <div className="text-center p-8 surface-card border border-red-200">
+                    <p className="text-sm font-medium mb-4 text-danger">Please complete all previous steps first.</p>
+                    <button onClick={onBack} className="btn btn-primary text-xs px-4 py-2">
+                        Go Back
+                    </button>
                 </div>
             )}
         </div>

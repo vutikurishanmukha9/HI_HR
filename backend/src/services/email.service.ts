@@ -40,14 +40,16 @@ export class EmailService {
      * Gets or creates a pooled transporter for the given email account
      */
     private async getTransporter(config: SMTPConfig): Promise<Transporter> {
-        const cacheKey = config.email;
+        const cleanEmail = config.email.trim().toLowerCase();
+        const cleanPassword = (config.appPassword || '').replace(/\s+/g, '');
+        const cacheKey = `${cleanEmail}:${cleanPassword}`;
         const cached = this.transporterCache.get(cacheKey);
         const now = Date.now();
 
         // Return cached transporter if valid
         if (cached && cached.verified && (now - cached.lastUsed) < this.CACHE_TTL) {
             cached.lastUsed = now;
-            logger.debug(`Using cached transporter for ${config.email}`);
+            logger.debug(`Using cached transporter for ${cleanEmail}`);
             return cached.transporter;
         }
 
@@ -61,7 +63,7 @@ export class EmailService {
             this.transporterCache.delete(cacheKey);
         }
 
-        logger.info(`Creating new pooled transporter for ${config.email}`);
+        logger.info(`Creating new pooled transporter for ${cleanEmail}`);
 
         // Create pooled transporter
         const transporter = nodemailer.createTransport({
@@ -72,8 +74,8 @@ export class EmailService {
             maxConnections: this.MAX_CONNECTIONS,
             maxMessages: 100, // Messages per connection before reconnect
             auth: {
-                user: config.email,
-                pass: config.appPassword,
+                user: cleanEmail,
+                pass: cleanPassword,
             },
             // Disable verbose logging in production
             debug: process.env.NODE_ENV === 'development',
@@ -185,8 +187,8 @@ export class EmailService {
     }
 
     /**
-     * Prepares an email with tracking (pixel + link rewriting)
-     * Call this before sending to enable open and click tracking
+     * Prepares clean email HTML with UTF-8 support (no tracking pixels, no redirect links)
+     * All links remain 100% direct and original for optimal deliverability.
      */
     async prepareTrackedEmail(options: {
         recipientEmail: string;
@@ -195,39 +197,25 @@ export class EmailService {
         campaignId?: string;
     }): Promise<{ html: string; trackingToken: string }> {
         try {
-            // Create tracking record
-            const { trackingToken } = await trackingService.createTrackingRecord({
-                recipientEmail: options.recipientEmail,
-                subject: options.subject,
-                campaignId: options.campaignId,
-            });
+            let cleanHtml = options.html;
 
-            // Rewrite links for click tracking
-            const { body: bodyWithTrackedLinks } = trackingService.rewriteLinksForTracking(
-                options.html,
-                trackingToken
-            );
-
-            // Generate and append tracking pixel
-            const trackingPixel = trackingService.generateTrackingPixelHtml(trackingToken);
-
-            // Inject pixel before closing body tag, or at the end
-            let trackedHtml = bodyWithTrackedLinks;
-            if (trackedHtml.includes('</body>')) {
-                trackedHtml = trackedHtml.replace('</body>', `${trackingPixel}</body>`);
-            } else {
-                trackedHtml = trackedHtml + trackingPixel;
+            // Ensure clean HTML5 container structure with UTF-8 charset
+            if (!cleanHtml.toLowerCase().includes('<html')) {
+                cleanHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #1e293b;">
+${cleanHtml}
+</body>
+</html>`;
             }
 
-            logger.debug('Email prepared with tracking', {
-                recipientEmail: options.recipientEmail,
-                trackingToken
-            });
-
-            return { html: trackedHtml, trackingToken };
+            return { html: cleanHtml, trackingToken: '' };
         } catch (error: any) {
-            // If tracking fails, still return original HTML
-            logger.error('Failed to prepare tracked email', { error: error.message });
+            logger.error('Failed to prepare clean email', { error: error.message });
             return { html: options.html, trackingToken: '' };
         }
     }

@@ -1,6 +1,7 @@
-
-import React, { useState, useRef, useEffect, DragEvent } from 'react';
+import React, { useState, useRef, useEffect, useMemo, DragEvent } from 'react';
 import { EmailTemplate } from '../types';
+import TemplateModal from './TemplateModal';
+import { analyzeSpamScore } from '../utils/spamChecker';
 
 interface EmailComposerProps {
     initialTemplate: EmailTemplate;
@@ -13,23 +14,25 @@ const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
 const MAX_SUBJECT_LENGTH = 200;
 
 const EmailComposer: React.FC<EmailComposerProps> = ({ initialTemplate, onCompose, onBack, availableTags = [] }) => {
-    const [subject, setSubject] = useState(initialTemplate.subject);
-    const [body, setBody] = useState(initialTemplate.body);
-    const [attachments, setAttachments] = useState<File[]>(initialTemplate.attachments || []);
+    const [subject, setSubject] = useState(initialTemplate?.subject || '');
+    const [body, setBody] = useState(initialTemplate?.body || '');
+    const [attachments, setAttachments] = useState<File[]>(initialTemplate?.attachments || []);
     const editorRef = useRef<HTMLDivElement>(null);
     const [showPlaceholder, setShowPlaceholder] = useState(false);
     const [isDraggingAttachment, setIsDraggingAttachment] = useState(false);
     const [attachmentError, setAttachmentError] = useState<string | null>(null);
     const [copiedTag, setCopiedTag] = useState<string | null>(null);
+    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+
+    // Compute live deliverability spam score
+    const spamReport = useMemo(() => analyzeSpamScore(subject, body), [subject, body]);
 
     // Robust clipboard copy with fallback
     const copyToClipboard = async (text: string) => {
         try {
-            // Modern API (requires HTTPS or localhost)
             if (navigator.clipboard && window.isSecureContext) {
                 await navigator.clipboard.writeText(text);
             } else {
-                // Fallback for older browsers or non-secure contexts
                 const textArea = document.createElement('textarea');
                 textArea.value = text;
                 textArea.style.position = 'fixed';
@@ -41,12 +44,10 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ initialTemplate, onCompos
                 document.execCommand('copy');
                 document.body.removeChild(textArea);
             }
-            // Show feedback
             setCopiedTag(text);
             setTimeout(() => setCopiedTag(null), 1500);
         } catch (err) {
             console.error('Copy failed:', err);
-            alert('Copy failed. Please manually select and copy: ' + text);
         }
     };
 
@@ -130,76 +131,117 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ initialTemplate, onCompos
     };
 
     const ToolbarButton: React.FC<{ onClick: () => void; children: React.ReactNode, title: string }> = ({ onClick, children, title }) => (
-        <button type="button" title={title} onClick={onClick} onMouseDown={(e) => e.preventDefault()}
-            className="p-2 rounded-lg transition-colors hover:bg-white/10">
+        <button
+            type="button"
+            title={title}
+            onClick={onClick}
+            onMouseDown={(e) => e.preventDefault()}
+            className="p-1.5 rounded-md text-ink-secondary hover:text-ink hover:bg-neutral-100 transition-colors"
+        >
             {children}
         </button>
     );
 
+    const scoreColors = useMemo(() => {
+        if (spamReport.score >= 90) return { text: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200', bar: 'bg-emerald-500' };
+        if (spamReport.score >= 75) return { text: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', bar: 'bg-amber-500' };
+        return { text: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200', bar: 'bg-red-500' };
+    }, [spamReport.score]);
+
     return (
-        <div className="max-w-4xl mx-auto fade-in">
+        <div className="max-w-4xl mx-auto">
             {/* Header */}
-            <div className="text-center mb-8">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4"
-                    style={{ background: 'linear-gradient(135deg, rgba(244, 63, 94, 0.15), rgba(249, 115, 22, 0.15))', border: '1px solid rgba(244, 63, 94, 0.25)' }}>
-                    <svg className="w-7 h-7" style={{ color: '#fb7185' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center mb-6">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent-light border border-neutral-200 text-accent mb-3 shadow-xs">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                     </svg>
                 </div>
-                <h2 className="text-2xl font-bold mb-2" style={{ color: '#f1f5f9' }}>Compose Your Email</h2>
-                <p style={{ color: '#94a3b8', fontSize: '0.9375rem' }}>Craft your message with personalization tags</p>
+                <h2 className="text-xl font-bold text-ink">Compose Your Email</h2>
+                <p className="text-sm text-ink-muted mt-1">Craft personalized cold email copy using variables</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Main Editor */}
-                <div className="lg:col-span-2 space-y-6">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Main Editor Column */}
+                <div className="lg:col-span-2 space-y-5">
+                    {/* Top Action Bar */}
+                    <div className="flex flex-wrap justify-between items-center gap-2 p-3 bg-neutral-50 border border-border rounded-xl">
+                        <button
+                            type="button"
+                            onClick={() => setIsTemplateModalOpen(true)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-card hover:bg-neutral-100 text-ink border border-neutral-200 shadow-xs transition-colors"
+                        >
+                            <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                            Templates Library
+                        </button>
+
+                        <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-ink-muted font-medium">Deliverability Score:</span>
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${scoreColors.bg} ${scoreColors.text} ${scoreColors.border}`}>
+                                <span className={`w-2 h-2 rounded-full ${scoreColors.bar}`} />
+                                {spamReport.score}/100 - {spamReport.rating}
+                            </span>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         {/* Subject */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Subject Line</label>
+                        <div className="space-y-1.5">
+                            <div className="flex justify-between items-center">
+                                <label className="block text-xs font-semibold uppercase tracking-wider text-ink-secondary">
+                                    Subject Line
+                                </label>
+                                <span className="text-[11px] text-ink-muted tabular-nums">
+                                    {(subject || '').length}/{MAX_SUBJECT_LENGTH}
+                                </span>
+                            </div>
                             <input
                                 type="text"
                                 value={subject}
                                 onChange={(e) => setSubject(e.target.value)}
-                                placeholder="An opportunity at {companyName}"
+                                placeholder="Opportunity at {companyName}"
+                                className="input"
                                 required
                                 maxLength={MAX_SUBJECT_LENGTH}
                             />
-                            <p className="mt-2 text-xs text-gray-500 text-right">{subject.length}/{MAX_SUBJECT_LENGTH}</p>
                         </div>
 
-                        {/* Editor */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">Email Body</label>
-                            <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                        {/* Editor Box */}
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-semibold uppercase tracking-wider text-ink-secondary">
+                                Email Body
+                            </label>
+                            <div className="border border-border rounded-xl overflow-hidden shadow-xs bg-card focus-within:border-accent focus-within:ring-2 focus-within:ring-neutral-200 transition-all">
                                 {/* Toolbar */}
-                                <div className="flex items-center gap-1 p-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.02)' }}>
-                                    <ToolbarButton title="Undo" onClick={() => handleFormat('undo')}>
-                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 15l-3-3m0 0l3-3m-3 3h8a5 5 0 000-10H9"></path></svg>
+                                <div className="flex items-center gap-1 px-3 py-2 border-b border-border bg-neutral-50">
+                                    <ToolbarButton title="Undo (Ctrl+Z)" onClick={() => handleFormat('undo')}>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 15l-3-3m0 0l3-3m-3 3h8a5 5 0 000-10H9"></path></svg>
                                     </ToolbarButton>
-                                    <ToolbarButton title="Redo" onClick={() => handleFormat('redo')}>
-                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 15l3-3m0 0l-3-3m3 3H5a5 5 0 000 10h6"></path></svg>
+                                    <ToolbarButton title="Redo (Ctrl+Y)" onClick={() => handleFormat('redo')}>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 15l3-3m0 0l-3-3m3 3H5a5 5 0 000 10h6"></path></svg>
                                     </ToolbarButton>
-                                    <div className="w-px h-4 mx-1" style={{ background: 'rgba(255,255,255,0.1)' }} />
+                                    <div className="w-px h-4 mx-1 bg-border" />
                                     <ToolbarButton title="Bold" onClick={() => handleFormat('bold')}>
-                                        <span className="font-bold text-gray-400">B</span>
+                                        <span className="font-bold text-xs px-0.5">B</span>
                                     </ToolbarButton>
                                     <ToolbarButton title="Italic" onClick={() => handleFormat('italic')}>
-                                        <span className="italic text-gray-400">I</span>
+                                        <span className="italic font-serif text-xs px-0.5">I</span>
                                     </ToolbarButton>
-                                    <ToolbarButton title="List" onClick={() => handleFormat('insertUnorderedList')}>
-                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                                    <ToolbarButton title="Bullet List" onClick={() => handleFormat('insertUnorderedList')}>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                                     </ToolbarButton>
-                                    <ToolbarButton title="Link" onClick={handleLink}>
-                                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101"></path></svg>
+                                    <ToolbarButton title="Insert Link" onClick={handleLink}>
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101"></path></svg>
                                     </ToolbarButton>
                                 </div>
 
-                                {/* Content Editable */}
+                                {/* Content Editable Body */}
                                 <div className="relative">
                                     {showPlaceholder && (
-                                        <div className="absolute top-4 left-4 text-gray-600 pointer-events-none whitespace-pre-wrap">
-                                            {`Hi {fullName},\n\nI came across your profile as a {jobTitle} at {companyName}...`}
+                                        <div className="absolute top-4 left-4 pointer-events-none text-ink-muted text-sm leading-relaxed whitespace-pre-wrap">
+                                            {`Hi {name},\n\nI came across your profile and was impressed by your work at {company}...`}
                                         </div>
                                     )}
                                     <div
@@ -207,53 +249,62 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ initialTemplate, onCompos
                                         contentEditable={true}
                                         onInput={handleBodyChange}
                                         onKeyDown={handleKeyDown}
-                                        className="min-h-[250px] p-4 text-white focus:outline-none prose-invert"
-                                        style={{ background: 'transparent' }}
+                                        className="min-h-[260px] p-4 focus:outline-none text-sm leading-relaxed text-ink"
                                     />
                                 </div>
                             </div>
                         </div>
                     </form>
 
-                    {/* Attachments */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Attachments</label>
+                    {/* Attachments Section */}
+                    <div className="space-y-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-ink-secondary">
+                            Attachments
+                        </label>
                         {attachmentError && (
-                            <div className="mb-3 p-3 rounded-lg" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-                                <p className="text-red-400 text-sm">{attachmentError}</p>
+                            <div className="p-3 rounded-lg bg-danger-light border border-red-200 text-danger text-xs font-medium animate-fadeIn">
+                                {attachmentError}
                             </div>
                         )}
                         <div
-                            className={`p-6 rounded-xl text-center cursor-pointer transition-all duration-300`}
-                            style={{
-                                background: isDraggingAttachment ? 'rgba(102, 126, 234, 0.1)' : 'rgba(255,255,255,0.02)',
-                                border: isDraggingAttachment ? '2px dashed #667eea' : '2px dashed rgba(255,255,255,0.1)',
-                            }}
+                            className={`p-5 rounded-xl text-center cursor-pointer border-2 border-dashed transition-all ${
+                                isDraggingAttachment
+                                    ? 'border-accent bg-neutral-100'
+                                    : 'border-neutral-300 hover:border-accent bg-neutral-50'
+                            }`}
                             onDragEnter={handleAttachmentDragEnter}
                             onDragLeave={handleAttachmentDragLeave}
                             onDragOver={handleAttachmentDragOver}
                             onDrop={handleAttachmentDrop}
                             onClick={() => document.getElementById('attachment-upload')?.click()}
                         >
-                            <svg className="w-8 h-8 text-gray-500 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                            <svg className="w-6 h-6 mx-auto mb-1 text-ink-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                             </svg>
-                            <p className="text-gray-400 text-sm">Drop files or click to browse</p>
+                            <p className="text-xs font-medium text-ink">Drop attachment files or browse</p>
+                            <p className="text-[11px] text-ink-muted mt-0.5">Resume, portfolio, PDF up to 10MB</p>
                             <input id="attachment-upload" type="file" className="sr-only" multiple onChange={handleAttachmentChange} />
                         </div>
 
                         {attachments.length > 0 && (
-                            <div className="mt-3 space-y-2">
+                            <div className="space-y-1.5 mt-2">
                                 {attachments.map((file, index) => (
-                                    <div key={index} className="flex items-center justify-between p-3 rounded-lg"
-                                        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                                        <div className="flex items-center gap-3">
-                                            <svg className="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <div
+                                        key={index}
+                                        className="flex items-center justify-between p-2.5 rounded-lg bg-neutral-50 border border-border text-xs"
+                                    >
+                                        <div className="flex items-center gap-2 truncate pr-2">
+                                            <svg className="w-4 h-4 text-accent flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M8 4a3 3 0 00-3 3v4a3 3 0 006 0V7a1 1 0 112 0v4a5 5 0 01-10 0V7a5 5 0 0110 0v4a1 1 0 11-2 0V7a3 3 0 00-3-3z" clipRule="evenodd" />
                                             </svg>
-                                            <span className="text-sm text-white truncate max-w-[200px]">{file.name}</span>
+                                            <span className="font-medium text-ink truncate">{file.name}</span>
+                                            <span className="text-ink-muted text-[10px]">({(file.size / 1024).toFixed(0)} KB)</span>
                                         </div>
-                                        <button onClick={() => removeAttachment(file.name)} className="text-red-400 hover:text-red-300 text-sm">
+                                        <button
+                                            type="button"
+                                            onClick={() => removeAttachment(file.name)}
+                                            className="text-danger hover:text-red-700 font-medium text-[11px]"
+                                        >
                                             Remove
                                         </button>
                                     </div>
@@ -263,48 +314,130 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ initialTemplate, onCompos
                     </div>
                 </div>
 
-                {/* Sidebar */}
-                <aside>
-                    <div className="rounded-xl p-5" style={{ background: 'rgba(244, 63, 94, 0.06)', border: '1px solid rgba(244, 63, 94, 0.15)' }}>
-                        <h4 className="font-semibold flex items-center gap-2 mb-2" style={{ color: '#f1f5f9' }}>
-                            <svg className="w-5 h-5" style={{ color: '#fb7185' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
-                            Personalization Tags
-                        </h4>
-                        <p className="text-sm mb-4" style={{ color: '#94a3b8' }}>Click to copy, then paste into your email</p>
-                        
-                        {availableTags.length === 0 ? (
-                            <div className="text-sm p-4 rounded-lg bg-white/5 border border-white/10 text-gray-400 text-center">
-                                Upload recipients to see your dynamic tags here.
+                {/* Sidebar: Dynamic Tags & Deliverability Insights */}
+                <aside className="space-y-5">
+                    {/* Personalization Tags */}
+                    <div className="surface-card p-4 sm:p-5 border border-border shadow-xs">
+                        <div className="flex items-center gap-2 mb-1.5">
+                            <div className="w-7 h-7 rounded-lg bg-neutral-100 border border-neutral-200 flex items-center justify-center text-accent">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                            </div>
+                            <h3 className="font-semibold text-sm text-ink">Personalization Tags</h3>
+                        </div>
+                        <p className="text-xs text-ink-muted mb-3">Click any variable to copy it to your clipboard</p>
+
+                        {(availableTags || []).length === 0 ? (
+                            <div className="text-xs p-3.5 rounded-lg text-center bg-neutral-50 border border-border text-ink-muted">
+                                Upload a recipient list to automatically detect available columns.
                             </div>
                         ) : (
-                            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="space-y-1.5 max-h-[220px] overflow-y-auto pr-1">
                                 {availableTags.map(tag => {
                                     const formattedTag = `{${tag}}`;
+                                    const isCopied = copiedTag === formattedTag;
+
                                     return (
                                         <button
                                             key={tag}
+                                            type="button"
                                             onClick={() => copyToClipboard(formattedTag)}
-                                            className="w-full text-left px-4 py-3 text-sm rounded-lg transition-all duration-300 hover:scale-[1.02] flex items-center justify-between"
-                                            style={{
-                                                background: copiedTag === formattedTag ? 'rgba(20, 184, 166, 0.15)' : 'rgba(148, 163, 184, 0.06)',
-                                                border: copiedTag === formattedTag ? '1px solid rgba(20, 184, 166, 0.4)' : '1px solid rgba(148, 163, 184, 0.12)',
-                                                color: copiedTag === formattedTag ? '#14b8a6' : '#fb7185'
-                                            }}
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-mono font-medium transition-all flex items-center justify-between border gap-2 ${
+                                                isCopied
+                                                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                                                    : 'bg-neutral-50 hover:bg-neutral-100 border-border hover:border-neutral-300 text-ink'
+                                            }`}
                                         >
-                                            <span>{formattedTag}</span>
-                                            {copiedTag === formattedTag && (
-                                        <span className="text-xs flex items-center gap-1" style={{ color: '#14b8a6' }}>
-                                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                            </svg>
-                                            Copied!
-                                        </span>
-                                    )}
+                                            <span className="truncate min-w-0 flex-1" title={formattedTag}>
+                                                {formattedTag}
+                                            </span>
+                                            {isCopied ? (
+                                                <span className="text-[10px] text-emerald-700 font-sans font-semibold flex items-center gap-1 flex-shrink-0">
+                                                    <svg className="w-3 h-3 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
+                                                    <span>Copied</span>
+                                                </span>
+                                            ) : (
+                                                <span className="text-[10px] text-ink-muted font-sans flex-shrink-0">
+                                                    Click to copy
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Deliverability & Spam Insights */}
+                    <div className="surface-card p-4 sm:p-5 border border-border shadow-xs">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <div className="w-7 h-7 rounded-lg bg-neutral-100 border border-neutral-200 flex items-center justify-center text-accent">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                    </svg>
+                                </div>
+                                <h3 className="font-semibold text-sm text-ink">Deliverability Insights</h3>
+                            </div>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${scoreColors.bg} ${scoreColors.text} ${scoreColors.border}`}>
+                                {spamReport.score}/100
+                            </span>
+                        </div>
+
+                        {/* Meter Bar */}
+                        <div className="w-full bg-neutral-100 rounded-full h-2 my-3 overflow-hidden border border-neutral-200">
+                            <div
+                                className={`h-full transition-all duration-300 ${scoreColors.bar}`}
+                                style={{ width: `${spamReport.score}%` }}
+                            />
+                        </div>
+
+                        {/* Issues list */}
+                        {spamReport.issues.length === 0 ? (
+                            <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
+                                <svg className="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                                <span>High inbox placement potential. No spam triggers detected.</span>
+                            </div>
+                        ) : (
+                            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                                {spamReport.issues.map((issue, idx) => (
+                                    <div
+                                        key={idx}
+                                        className={`p-2.5 rounded-lg border text-xs leading-relaxed ${
+                                            issue.type === 'high'
+                                                ? 'bg-red-50 border-red-200 text-red-800'
+                                                : issue.type === 'medium'
+                                                ? 'bg-amber-50 border-amber-200 text-amber-800'
+                                                : 'bg-neutral-50 border-neutral-200 text-ink-secondary'
+                                        }`}
+                                    >
+                                        <div className="font-semibold text-[10px] uppercase tracking-wider mb-0.5">
+                                            {issue.type === 'high' ? 'High Risk' : issue.type === 'medium' ? 'Notice' : 'Suggestion'}
+                                        </div>
+                                        <div>{issue.message}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {(spamReport?.triggerWords || spamReport?.spamWordsFound || []).length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-border">
+                                <div className="text-[11px] font-semibold text-ink-muted uppercase tracking-wider mb-1.5">
+                                    Spam Words Detected ({(spamReport?.triggerWords || spamReport?.spamWordsFound || []).length}):
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                    {(spamReport?.triggerWords || spamReport?.spamWordsFound || []).map((w, i) => (
+                                        <span
+                                            key={i}
+                                            className="px-2 py-0.5 rounded bg-red-100 text-red-800 font-mono text-[10px] border border-red-200"
+                                        >
+                                            {w}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -312,28 +445,39 @@ const EmailComposer: React.FC<EmailComposerProps> = ({ initialTemplate, onCompos
             </div>
 
             {/* Action Buttons */}
-            <div className="mt-8 flex justify-between">
+            <div className="mt-8 flex justify-between items-center pt-4 border-t border-border">
                 <button
                     type="button"
                     onClick={onBack}
-                    className="px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300"
-                    style={{ border: '1px solid rgba(148, 163, 184, 0.15)', color: '#94a3b8' }}
+                    className="btn btn-secondary text-xs px-4 py-2"
                 >
-                    ← Back
+                    Back
                 </button>
                 <button
-                    type="submit"
+                    type="button"
                     onClick={handleSubmit}
                     disabled={!subject.trim() || !body.trim()}
-                    className="px-8 py-3 rounded-xl font-semibold text-white text-sm transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
-                    style={{
-                        background: 'linear-gradient(135deg, #f43f5e 0%, #f97316 100%)',
-                        boxShadow: (!subject.trim() || !body.trim()) ? 'none' : '0 4px 20px rgba(244, 63, 94, 0.35)'
-                    }}
+                    className="btn btn-primary text-xs px-6 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
                 >
-                    Continue →
+                    Review Campaign
                 </button>
             </div>
+
+            {/* Saved Templates Modal */}
+            <TemplateModal
+                isOpen={isTemplateModalOpen}
+                onClose={() => setIsTemplateModalOpen(false)}
+                onSelectTemplate={(tpl) => {
+                    setSubject(tpl.subject);
+                    setBody(tpl.body);
+                    if (editorRef.current) {
+                        editorRef.current.innerHTML = tpl.body;
+                    }
+                    setIsTemplateModalOpen(false);
+                }}
+                currentSubject={subject}
+                currentBody={body}
+            />
         </div>
     );
 };

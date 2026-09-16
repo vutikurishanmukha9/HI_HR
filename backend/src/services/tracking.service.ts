@@ -1,373 +1,281 @@
 /**
- * Email Tracking Service
- * Handles open tracking (pixel) and click tracking (link rewriting)
+ * Email Delivery & Outreach Service
+ * Records email delivery logs and performance metrics without invasive
+ * tracking pixels or link redirects, ensuring optimal deliverability.
  */
 import crypto from 'crypto';
-import logger from '../utils/logger';
-
-// In-memory storage for development (file-based)
-// In production, this will be handled by database
 import fs from 'fs';
 import path from 'path';
+import logger from '../utils/logger';
 
-const TRACKING_DIR = path.join(process.cwd(), 'logs');
-const TRACKING_FILE = path.join(TRACKING_DIR, 'email_tracking.jsonl');
+const LOGS_DIR = path.join(process.cwd(), 'logs');
+const DELIVERY_LOG_FILE = path.join(LOGS_DIR, 'email_delivery.jsonl');
+const DELIVERY_LOG_TMP = path.join(LOGS_DIR, 'email_delivery.tmp');
 
 // Ensure logs directory exists
-if (!fs.existsSync(TRACKING_DIR)) {
-    fs.mkdirSync(TRACKING_DIR, { recursive: true });
+if (!fs.existsSync(LOGS_DIR)) {
+    fs.mkdirSync(LOGS_DIR, { recursive: true });
 }
 
-interface TrackingRecord {
+export interface DeliveryRecord {
     id: string;
-    trackingToken: string;
+    userId: string;
     recipientEmail: string;
     subject?: string;
     campaignId?: string;
-    openCount: number;
-    firstOpenedAt?: string;
-    lastOpenedAt?: string;
-    userAgent?: string;
-    ipAddress?: string;
-    links: LinkRecord[];
-    createdAt: string;
+    status: 'sent' | 'failed';
+    errorMessage?: string;
+    sentAt: string;
 }
 
-interface LinkRecord {
-    clickToken: string;
-    originalUrl: string;
-    clickCount: number;
-    firstClickedAt?: string;
-    lastClickedAt?: string;
-}
+// In-memory cache for fast lookups
+let recordsCache: DeliveryRecord[] | null = null;
+let lastLoadedMtime: number = 0;
 
 /**
- * Generate a unique tracking token
+ * Load delivery records safely line-by-line.
  */
-export function generateTrackingToken(): string {
-    return crypto.randomBytes(16).toString('hex');
-}
-
-/**
- * Generate a unique click token for a link
- */
-export function generateClickToken(): string {
-    return crypto.randomBytes(12).toString('hex');
-}
-
-/**
- * Create a tracking record for an email
- */
-export async function createTrackingRecord(data: {
-    recipientEmail: string;
-    subject?: string;
-    campaignId?: string;
-}): Promise<{ trackingToken: string; trackingPixelUrl: string }> {
-    const trackingToken = generateTrackingToken();
-
-    const record: TrackingRecord = {
-        id: crypto.randomUUID(),
-        trackingToken,
-        recipientEmail: data.recipientEmail,
-        subject: data.subject,
-        campaignId: data.campaignId,
-        openCount: 0,
-        links: [],
-        createdAt: new Date().toISOString(),
-    };
-
-    // Append to JSONL file
-    const line = JSON.stringify(record) + '\n';
-    fs.appendFileSync(TRACKING_FILE, line);
-
-    logger.debug('Created tracking record', { trackingToken, recipientEmail: data.recipientEmail });
-
-    // Generate tracking pixel URL (will be served by our API)
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
-    const trackingPixelUrl = `${baseUrl}/api/track/open/${trackingToken}`;
-
-    return { trackingToken, trackingPixelUrl };
-}
-
-/**
- * Record an email open event
- */
-export async function recordEmailOpen(
-    trackingToken: string,
-    userAgent?: string,
-    ipAddress?: string
-): Promise<boolean> {
+function loadDeliveryRecords(forceReload = false): DeliveryRecord[] {
     try {
-        const records = loadTrackingRecords();
-        const recordIndex = records.findIndex(r => r.trackingToken === trackingToken);
-
-        if (recordIndex === -1) {
-            logger.warn('Tracking token not found', { trackingToken });
-            return false;
+        if (!fs.existsSync(DELIVERY_LOG_FILE)) {
+            recordsCache = [];
+            lastLoadedMtime = 0;
+            return recordsCache;
         }
 
-        const record = records[recordIndex];
-        record.openCount += 1;
-        record.lastOpenedAt = new Date().toISOString();
-        if (!record.firstOpenedAt) {
-            record.firstOpenedAt = record.lastOpenedAt;
-        }
-        record.userAgent = userAgent;
-        record.ipAddress = ipAddress;
-
-        // Save updated records
-        saveTrackingRecords(records);
-
-        logger.info('Email opened', {
-            trackingToken,
-            recipientEmail: record.recipientEmail,
-            openCount: record.openCount
-        });
-
-        return true;
-    } catch (error: any) {
-        logger.error('Error recording email open', { error: error.message });
-        return false;
-    }
-}
-
-/**
- * Rewrite links in email body to use tracking URLs
- */
-export function rewriteLinksForTracking(
-    emailBody: string,
-    trackingToken: string,
-    baseUrl: string = process.env.BACKEND_URL || 'http://localhost:5000'
-): { body: string; links: Array<{ clickToken: string; originalUrl: string }> } {
-    const links: Array<{ clickToken: string; originalUrl: string }> = [];
-
-    // Match href attributes in anchor tags
-    const linkRegex = /href=["']([^"']+)["']/gi;
-
-    const newBody = emailBody.replace(linkRegex, (match, url) => {
-        // Skip mailto:, tel:, and anchor links
-        if (url.startsWith('mailto:') || url.startsWith('tel:') || url.startsWith('#')) {
-            return match;
+        const stat = fs.statSync(DELIVERY_LOG_FILE);
+        if (!forceReload && recordsCache !== null && stat.mtimeMs === lastLoadedMtime) {
+            return recordsCache;
         }
 
-        // Skip tracking pixel URLs
-        if (url.includes('/api/track/')) {
-            return match;
-        }
+        lastLoadedMtime = stat.mtimeMs;
+        const content = fs.readFileSync(DELIVERY_LOG_FILE, 'utf-8');
+        const lines = content.split('\n');
+        const records: DeliveryRecord[] = [];
 
-        const clickToken = generateClickToken();
-        const trackingUrl = `${baseUrl}/api/track/click/${clickToken}`;
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
 
-        links.push({ clickToken, originalUrl: url });
-
-        return `href="${trackingUrl}"`;
-    });
-
-    // Store link mappings
-    if (links.length > 0) {
-        const records = loadTrackingRecords();
-        const recordIndex = records.findIndex(r => r.trackingToken === trackingToken);
-        if (recordIndex !== -1) {
-            records[recordIndex].links = links.map(l => ({
-                ...l,
-                clickCount: 0,
-            }));
-            saveTrackingRecords(records);
-        }
-    }
-
-    return { body: newBody, links };
-}
-
-/**
- * Record a link click event
- */
-export async function recordLinkClick(
-    clickToken: string,
-    userAgent?: string,
-    ipAddress?: string
-): Promise<string | null> {
-    try {
-        const records = loadTrackingRecords();
-
-        for (const record of records) {
-            const linkIndex = record.links.findIndex(l => l.clickToken === clickToken);
-            if (linkIndex !== -1) {
-                const link = record.links[linkIndex];
-                link.clickCount += 1;
-                link.lastClickedAt = new Date().toISOString();
-                if (!link.firstClickedAt) {
-                    link.firstClickedAt = link.lastClickedAt;
+            try {
+                const parsed = JSON.parse(line);
+                if (parsed && parsed.recipientEmail) {
+                    // Backwards compatibility for pre-existing logs without userId
+                    if (!parsed.userId) {
+                        parsed.userId = 'legacy';
+                    }
+                    records.push(parsed);
                 }
-
-                saveTrackingRecords(records);
-
-                logger.info('Link clicked', {
-                    clickToken,
-                    recipientEmail: record.recipientEmail,
-                    originalUrl: link.originalUrl,
-                    clickCount: link.clickCount,
+            } catch (err: any) {
+                logger.warn('Skipping corrupted line in delivery records file', {
+                    lineIndex: i,
+                    error: err.message,
                 });
-
-                return link.originalUrl;
             }
         }
 
-        logger.warn('Click token not found', { clickToken });
-        return null;
+        recordsCache = records;
+        return recordsCache;
     } catch (error: any) {
-        logger.error('Error recording link click', { error: error.message });
-        return null;
+        logger.error('Failed to read delivery records file', { error: error.message });
+        recordsCache = [];
+        return recordsCache;
     }
 }
 
 /**
- * Get tracking stats for a campaign or all emails
+ * Save delivery records atomically to prevent file corruption
  */
-export function getTrackingStats(campaignId?: string): {
+function saveDeliveryRecords(records: DeliveryRecord[]): void {
+    try {
+        recordsCache = records;
+        const content = records.map(r => JSON.stringify(r)).join('\n') + '\n';
+
+        fs.writeFileSync(DELIVERY_LOG_TMP, content, 'utf-8');
+        fs.renameSync(DELIVERY_LOG_TMP, DELIVERY_LOG_FILE);
+
+        if (fs.existsSync(DELIVERY_LOG_FILE)) {
+            lastLoadedMtime = fs.statSync(DELIVERY_LOG_FILE).mtimeMs;
+        }
+    } catch (error: any) {
+        logger.error('Failed to save delivery records', { error: error.message });
+    }
+}
+
+/**
+ * Record an email delivery event (sent or failed) scoped to a user
+ */
+export async function recordDelivery(data: {
+    userId: string;
+    recipientEmail: string;
+    subject?: string;
+    campaignId?: string;
+    status: 'sent' | 'failed';
+    errorMessage?: string;
+}): Promise<DeliveryRecord> {
+    const record: DeliveryRecord = {
+        id: crypto.randomUUID(),
+        userId: data.userId,
+        recipientEmail: data.recipientEmail,
+        subject: data.subject,
+        campaignId: data.campaignId,
+        status: data.status,
+        errorMessage: data.errorMessage,
+        sentAt: new Date().toISOString(),
+    };
+
+    const records = loadDeliveryRecords();
+    records.push(record);
+    saveDeliveryRecords(records);
+
+    logger.info(`Email delivery recorded: [${data.status.toUpperCase()}]`, {
+        userId: data.userId,
+        recipientEmail: data.recipientEmail,
+        status: data.status,
+    });
+
+    return record;
+}
+
+/**
+ * Get delivery stats for a specific user (and optionally a specific campaign)
+ */
+export function getTrackingStats(userId: string, campaignId?: string): {
     totalSent: number;
-    totalOpened: number;
-    openRate: number;
-    totalClicks: number;
-    uniqueClicks: number;
-    records: TrackingRecord[];
+    sentCount: number;
+    failedCount: number;
+    successRate: number;
+    records: DeliveryRecord[];
 } {
-    let records = loadTrackingRecords();
+    let records = loadDeliveryRecords().filter(r => r.userId === userId);
 
     if (campaignId) {
         records = records.filter(r => r.campaignId === campaignId);
     }
 
     const totalSent = records.length;
-    const totalOpened = records.filter(r => r.openCount > 0).length;
-    const openRate = totalSent > 0 ? Math.round((totalOpened / totalSent) * 100) : 0;
-
-    let totalClicks = 0;
-    let uniqueClicks = 0;
-
-    for (const record of records) {
-        for (const link of record.links) {
-            totalClicks += link.clickCount;
-            if (link.clickCount > 0) {
-                uniqueClicks += 1;
-            }
-        }
-    }
+    const sentCount = records.filter(r => r.status === 'sent').length;
+    const failedCount = records.filter(r => r.status === 'failed').length;
+    const successRate = totalSent > 0 ? Math.round((sentCount / totalSent) * 100) : 0;
 
     return {
         totalSent,
-        totalOpened,
-        openRate,
-        totalClicks,
-        uniqueClicks,
+        sentCount,
+        failedCount,
+        successRate,
         records,
     };
 }
 
 /**
- * Get paginated tracking details for a campaign or all emails
+ * Get paginated delivery details for a specific user (and optionally a specific campaign)
  */
 export function getTrackingDetailsPaginated(
+    userId: string,
     page: number = 1,
     limit: number = 50,
     campaignId?: string
 ): {
     totalSent: number;
-    totalOpened: number;
-    openRate: number;
-    totalClicks: number;
-    uniqueClicks: number;
-    records: TrackingRecord[];
+    sentCount: number;
+    failedCount: number;
+    successRate: number;
+    records: DeliveryRecord[];
     pagination: {
         total: number;
         page: number;
         limit: number;
         totalPages: number;
-    }
+    };
 } {
-    let records = loadTrackingRecords();
+    let records = loadDeliveryRecords().filter(r => r.userId === userId);
 
     if (campaignId) {
         records = records.filter(r => r.campaignId === campaignId);
     }
 
-    // Sort by createdAt descending (newest first)
-    records.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    // Sort by sentAt descending (newest first)
+    records.sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
 
     const totalSent = records.length;
-    const totalOpened = records.filter(r => r.openCount > 0).length;
-    const openRate = totalSent > 0 ? Math.round((totalOpened / totalSent) * 100) : 0;
+    const sentCount = records.filter(r => r.status === 'sent').length;
+    const failedCount = records.filter(r => r.status === 'failed').length;
+    const successRate = totalSent > 0 ? Math.round((sentCount / totalSent) * 100) : 0;
 
-    let totalClicks = 0;
-    let uniqueClicks = 0;
-
-    for (const record of records) {
-        for (const link of record.links) {
-            totalClicks += link.clickCount;
-            if (link.clickCount > 0) {
-                uniqueClicks += 1;
-            }
-        }
-    }
-
-    // Pagination
     const startIndex = (page - 1) * limit;
     const endIndex = page * limit;
     const paginatedRecords = records.slice(startIndex, endIndex);
 
     return {
         totalSent,
-        totalOpened,
-        openRate,
-        totalClicks,
-        uniqueClicks,
+        sentCount,
+        failedCount,
+        successRate,
         records: paginatedRecords,
         pagination: {
             total: totalSent,
             page,
             limit,
-            totalPages: Math.ceil(totalSent / limit)
-        }
+            totalPages: Math.ceil(totalSent / limit) || 1,
+        },
     };
 }
 
 /**
- * Generate HTML for tracking pixel
+ * Clear delivery records for a specific user (all or for a specific campaign)
  */
-export function generateTrackingPixelHtml(trackingToken: string): string {
-    const baseUrl = process.env.BACKEND_URL || 'http://localhost:5000';
-    const pixelUrl = `${baseUrl}/api/track/open/${trackingToken}`;
-
-    return `<img src="${pixelUrl}" alt="" width="1" height="1" style="display:none;width:1px;height:1px;border:0;" />`;
-}
-
-// Helper functions for file-based storage
-function loadTrackingRecords(): TrackingRecord[] {
+export function clearTrackingRecords(userId: string, campaignId?: string): void {
     try {
-        if (!fs.existsSync(TRACKING_FILE)) {
-            return [];
+        let records = loadDeliveryRecords();
+        if (campaignId) {
+            records = records.filter(r => !(r.userId === userId && r.campaignId === campaignId));
+            logger.info('Cleared delivery records for campaign', { userId, campaignId });
+        } else {
+            records = records.filter(r => r.userId !== userId);
+            logger.info('Cleared all email delivery records for user', { userId });
         }
-        const content = fs.readFileSync(TRACKING_FILE, 'utf-8');
-        const lines = content.trim().split('\n').filter(Boolean);
-        return lines.map(line => JSON.parse(line));
-    } catch {
-        return [];
+        saveDeliveryRecords(records);
+    } catch (error: any) {
+        logger.error('Failed to clear delivery records', { error: error.message });
+        throw error;
     }
 }
 
-function saveTrackingRecords(records: TrackingRecord[]): void {
-    const content = records.map(r => JSON.stringify(r)).join('\n') + '\n';
-    fs.writeFileSync(TRACKING_FILE, content);
+// Backward-compatible stubs so no external calls break
+export function generateTrackingToken(): string {
+    return '';
+}
+export function generateClickToken(): string {
+    return '';
+}
+export async function createTrackingRecord(): Promise<{ trackingToken: string; trackingPixelUrl: string }> {
+    return { trackingToken: '', trackingPixelUrl: '' };
+}
+export function deleteTrackingRecord(_trackingToken?: string): void {}
+export async function recordEmailOpen(_token?: string, _userAgent?: string, _ipAddress?: string): Promise<boolean> {
+    return false;
+}
+export async function recordLinkClick(_token?: string, _userAgent?: string, _ipAddress?: string): Promise<string | null> {
+    return null;
+}
+export function rewriteLinksForTracking(emailBody: string): { body: string; links: any[] } {
+    return { body: emailBody, links: [] };
+}
+export function generateTrackingPixelHtml(): string {
+    return '';
 }
 
 export default {
+    recordDelivery,
+    getTrackingStats,
+    getTrackingDetailsPaginated,
+    clearTrackingRecords,
     generateTrackingToken,
     generateClickToken,
     createTrackingRecord,
+    deleteTrackingRecord,
     recordEmailOpen,
     recordLinkClick,
     rewriteLinksForTracking,
-    getTrackingStats,
-    getTrackingDetailsPaginated,
     generateTrackingPixelHtml,
 };

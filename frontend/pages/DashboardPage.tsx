@@ -55,7 +55,7 @@ const DashboardPage: React.FC = () => {
     // Track if we've shown the celebration (prevent multiple toasts)
     const celebrationShownRef = React.useRef(false);
 
-    // Show confetti when campaign finishes successfully
+    // Show success toast when campaign finishes
     useEffect(() => {
         if (campaign.isCampaignFinished && !celebrationShownRef.current) {
             const sentCount = Object.values(campaign.sendProgress).filter(
@@ -88,16 +88,18 @@ const DashboardPage: React.FC = () => {
             } else if (result.error.toLowerCase().includes('unauthorized') || result.error.toLowerCase().includes('401')) {
                 toast.error('Session Expired', 'Please log in again.');
             } else {
-                toast.error('Error', result.error);
+                toast.error('Authentication Error', result.error);
             }
+            return result;
         } else {
             toast.success('Credentials Saved', 'Your email credentials have been saved securely.');
+            return result;
         }
     };
 
     return (
-        <div className="min-h-screen py-8 px-4">
-            {/* Confetti Animation */}
+        <div className="min-h-screen py-8 px-4 sm:px-6 bg-canvas">
+            {/* Confetti celebration on completion */}
             <Confetti show={showConfetti} onComplete={() => setShowConfetti(false)} />
 
             {/* Email Preview Modal */}
@@ -111,178 +113,198 @@ const DashboardPage: React.FC = () => {
                 />
             )}
 
-            <div className="max-w-4xl mx-auto">
-                {/* Premium Header */}
-                <div className="glass-card p-5 sm:p-6 mb-6">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-11 h-11 rounded-xl flex items-center justify-center shadow-lg"
-                                style={{ background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%)' }}>
-                                <span className="text-white font-extrabold text-lg" style={{ fontFamily: "'Outfit', sans-serif" }}>Hi</span>
+            <div className="max-w-4xl mx-auto space-y-6">
+                {/* Modern Top Header Bar */}
+                <header className="surface-card p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-accent text-white flex items-center justify-center font-bold text-base shadow-xs">
+                            Hi
+                        </div>
+                        <div>
+                            <div className="flex items-center gap-2">
+                                <span className="font-bold text-lg text-ink tracking-tight">HiHR</span>
+                                <span className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-accent-light text-accent border border-neutral-200">
+                                    Outreach Platform
+                                </span>
                             </div>
-                            <div>
-                                <h1 className="text-2xl font-extrabold text-brand">HiHR</h1>
-                                <p className="text-xs" style={{ color: '#64748b' }}>Smart HR Email Outreach</p>
+                            <p className="text-xs text-ink-muted">High-deliverability recruitment campaigns</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-border">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-neutral-100 border border-border flex items-center justify-center text-xs font-semibold text-ink-secondary">
+                                {user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
+                            </div>
+                            <div className="text-left">
+                                <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Signed in</p>
+                                <p className="text-xs font-medium text-ink truncate max-w-[160px] sm:max-w-[200px]" title={user?.email}>
+                                    {user?.email}
+                                </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 w-full sm:w-auto">
-                            <div className="text-right flex-1 sm:flex-none">
-                                <p className="text-[10px] uppercase tracking-wider" style={{ color: '#64748b' }}>Logged in as</p>
-                                <p className="text-sm font-medium truncate max-w-[150px] sm:max-w-none" style={{ color: '#f1f5f9' }}>{user?.email}</p>
-                            </div>
-                            <button
-                                onClick={logout}
-                                className="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300"
-                                style={{ border: '1px solid rgba(148, 163, 184, 0.15)', color: '#94a3b8' }}
-                            >
-                                Logout
-                            </button>
-                        </div>
+                        <button
+                            onClick={logout}
+                            className="btn btn-secondary text-xs px-3 py-1.5 ml-2"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
+                </header>
+
+                {/* Tab Switcher */}
+                <div className="flex justify-center">
+                    <div className="p-1 rounded-xl bg-card border border-border shadow-xs inline-flex gap-1">
+                        <button
+                            onClick={() => setActiveTab('campaign')}
+                            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${
+                                activeTab === 'campaign'
+                                    ? 'bg-accent text-white shadow-xs'
+                                    : 'text-ink-secondary hover:text-ink hover:bg-neutral-100'
+                            }`}
+                        >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            Campaign Builder
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('analytics')}
+                            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${
+                                activeTab === 'analytics'
+                                    ? 'bg-accent text-white shadow-xs'
+                                    : 'text-ink-secondary hover:text-ink hover:bg-neutral-100'
+                            }`}
+                        >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            Analytics
+                        </button>
                     </div>
                 </div>
 
-                {/* Dashboard Stats - Show when there's activity */}
+                {/* Dashboard Stats - Show when there's campaign activity */}
                 {activeTab === 'campaign' && (totalSent > 0 || campaign.recipients.length > 0) && (
                     <DashboardStats
                         totalSent={totalSent}
                         successRate={successRate}
                         todaySent={totalSent}
                         pendingCount={campaign.recipients.length - totalSent - totalFailed}
+                        onReset={campaign.handleReset}
                     />
                 )}
-
-                {/* Tab Switcher */}
-                <div className="flex justify-center mb-6">
-                    <div className="bg-black/30 p-1 rounded-full inline-flex" style={{ border: '1px solid rgba(148, 163, 184, 0.1)' }}>
-                        <button
-                            onClick={() => setActiveTab('campaign')}
-                            className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeTab === 'campaign' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-400 hover:text-gray-200'}`}
-                        >
-                            Campaign Builder
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('analytics')}
-                            className={`px-6 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeTab === 'analytics' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-400 hover:text-gray-200'}`}
-                        >
-                            Analytics
-                        </button>
-                    </div>
-                </div>
 
                 {/* Main Content Area */}
                 {activeTab === 'analytics' ? (
                     <AnalyticsDashboard />
                 ) : (
-                    <>
+                    <div className="space-y-6">
                         {/* Step Indicator */}
                         <StepIndicator currentStep={campaign.step} totalSteps={campaign.totalSteps} />
 
-                        {/* Main Content with Step Transition */}
-                        <div className="glass-card p-4 sm:p-8 mt-6">
-                            <div className="step-enter">
+                        {/* Main Step Card */}
+                        <div className="surface-card p-5 sm:p-8">
+                            <div className="animate-fadeIn">
                                 {campaign.step === 1 && (
                                     <CredentialsForm
-                                onSave={handleCredentialsSave}
-                                initialCredentials={campaign.credentials}
-                            />
-                        )}
+                                        onSave={handleCredentialsSave}
+                                        initialCredentials={campaign.credentials}
+                                    />
+                                )}
 
-                        {campaign.step === 2 && (
-                            <RecipientUploader
-                                onUpload={campaign.handleRecipientsUpload}
-                                onBack={campaign.handleBack}
-                            />
-                        )}
+                                {campaign.step === 2 && (
+                                    <RecipientUploader
+                                        onUpload={campaign.handleRecipientsUpload}
+                                        onBack={campaign.handleBack}
+                                    />
+                                )}
 
-                        {campaign.step === 3 && (
-                            <EmailComposer
-                                onCompose={campaign.handleEmailCompose}
-                                onBack={campaign.handleBack}
-                                recipients={campaign.recipients}
-                                availableTags={campaign.availableTags}
-                                initialTemplate={campaign.emailTemplate}
-                            />
-                        )}
+                                {campaign.step === 3 && (
+                                    <EmailComposer
+                                        onCompose={campaign.handleEmailCompose}
+                                        onBack={campaign.handleBack}
+                                        recipients={campaign.recipients}
+                                        availableTags={campaign.availableTags}
+                                        initialTemplate={campaign.emailTemplate}
+                                    />
+                                )}
 
-                        {campaign.step === 4 && campaign.credentials && (
-                            <>
-                                {/* Preview Button */}
-                                <div className="flex justify-end mb-4">
-                                    <button
-                                        onClick={() => setShowPreview(true)}
-                                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                        </svg>
-                                        Preview Email
-                                    </button>
-                                </div>
+                                {campaign.step === 4 && campaign.credentials && (
+                                    <>
+                                        {/* Preview Button */}
+                                        <div className="flex justify-end mb-4">
+                                            <button
+                                                onClick={() => setShowPreview(true)}
+                                                className="btn btn-secondary text-xs flex items-center gap-2 px-3 py-1.5"
+                                            >
+                                                <svg className="w-4 h-4 text-ink-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                                Preview Email
+                                            </button>
+                                        </div>
 
-                                <ReviewAndSend
-                                    credentials={campaign.credentials}
-                                    recipients={campaign.recipients}
-                                    emailTemplate={campaign.emailTemplate}
-                                    sendProgress={campaign.sendProgress}
-                                    isSending={campaign.isSending}
-                                    isCampaignFinished={campaign.isCampaignFinished}
-                                    scheduledTime={campaign.scheduledTime}
-                                    onScheduleOrSend={async (config) => {
-                                        const result = await campaign.handleSendCampaign(config);
-                                        if (!result) return;
+                                        <ReviewAndSend
+                                            credentials={campaign.credentials}
+                                            recipients={campaign.recipients}
+                                            emailTemplate={campaign.emailTemplate}
+                                            sendProgress={campaign.sendProgress}
+                                            isSending={campaign.isSending}
+                                            isCampaignFinished={campaign.isCampaignFinished}
+                                            scheduledTime={campaign.scheduledTime}
+                                            onScheduleOrSend={async (config) => {
+                                                const result = await campaign.handleSendCampaign(config);
+                                                if (!result) return;
 
-                                        if (!result.success) {
-                                            // Whole campaign failed
-                                            const errorType = (result as any).errorType;
-                                            const errorMsg = (result as any).error || 'Campaign failed';
+                                                if (!result.success) {
+                                                    const errorType = (result as any).errorType;
+                                                    const errorMsg = (result as any).error || 'Campaign failed';
 
-                                            if (errorType === 'credential') {
-                                                toast.error('Credential Error', errorMsg);
-                                            } else if (errorType === 'validation') {
-                                                toast.error('Validation Error', errorMsg);
-                                            } else if (errorType === 'network') {
-                                                toast.error('Connection Error', errorMsg);
-                                            } else {
-                                                toast.error('Send Failed', errorMsg);
-                                            }
-                                        } else if (result.success) {
-                                            const r = result as any;
-                                            if (r.failed > 0 && r.sent > 0) {
-                                                // Partial success
-                                                toast.warning(
-                                                    'Partially Sent',
-                                                    `${r.sent} sent, ${r.failed} failed. Hover over failed recipients to see details.`
-                                                );
-                                            } else if (r.failed > 0 && r.sent === 0) {
-                                                // All failed
-                                                const firstError = r.failedDetails?.[0]?.error || 'Unknown error';
-                                                toast.error('All Emails Failed', firstError);
-                                            }
-                                            // Full success is handled by the confetti/celebration effect
-                                        }
-                                    }}
-                                    onCancelSchedule={campaign.handleCancelSchedule}
-                                    onBack={campaign.handleBack}
-                                    onReset={campaign.handleReset}
-                                />
-                            </>
-                        )}
+                                                    if (errorType === 'credential') {
+                                                        toast.error('Credential Error', errorMsg);
+                                                    } else if (errorType === 'validation') {
+                                                        toast.error('Validation Error', errorMsg);
+                                                    } else if (errorType === 'network') {
+                                                        toast.error('Connection Error', errorMsg);
+                                                    } else {
+                                                        toast.error('Send Failed', errorMsg);
+                                                    }
+                                                } else if (result.success) {
+                                                    const r = result as any;
+                                                    if (r.failed > 0 && r.sent > 0) {
+                                                        toast.warning(
+                                                            'Partially Sent',
+                                                            `${r.sent} sent, ${r.failed} failed. Hover over failed recipients to see details.`
+                                                        );
+                                                    } else if (r.failed > 0 && r.sent === 0) {
+                                                        const firstError = r.failedDetails?.[0]?.error || 'Unknown error';
+                                                        toast.error('All Emails Failed', firstError);
+                                                    }
+                                                }
+                                            }}
+                                            onCancelSchedule={campaign.handleCancelSchedule}
+                                            onBack={campaign.handleBack}
+                                            onReset={campaign.handleReset}
+                                        />
+                                    </>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </>
-            )}
+                )}
 
-            {/* Footer */}
-                <div className="text-center mt-8 text-xs" style={{ color: '#475569' }}>
+                {/* Modern Minimal Footer */}
+                <footer className="pt-4 pb-8 text-center text-xs text-ink-muted border-t border-border space-y-1">
                     <p>
-                        Powered by <span className="font-semibold" style={{ color: '#94a3b8' }}>HiHR</span> · Credentials encrypted end-to-end
+                        HiHR Outreach Engine · End-to-end encrypted SMTP credentials
                     </p>
-                    <p className="mt-1 flex items-center justify-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#14b8a6' }}></span>
-                        <span>Backend connected</span>
-                    </p>
-                </div>
+                    <div className="flex items-center justify-center gap-1.5 text-[11px] text-ink-muted">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>Backend active & connected</span>
+                    </div>
+                </footer>
             </div>
         </div>
     );

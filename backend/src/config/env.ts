@@ -21,6 +21,7 @@ interface EnvConfig {
     UPLOAD_DIR: string;
     RATE_LIMIT_WINDOW_MS: number;
     RATE_LIMIT_MAX_REQUESTS: number;
+    API_URL: string;
 }
 
 const getEnvVar = (key: string, defaultValue?: string): string => {
@@ -78,5 +79,6 @@ export const env: EnvConfig = {
     UPLOAD_DIR: getEnvVar('UPLOAD_DIR', './uploads'),
     RATE_LIMIT_WINDOW_MS: parseInt(getEnvVar('RATE_LIMIT_WINDOW_MS', '900000'), 10),
     RATE_LIMIT_MAX_REQUESTS: parseInt(getEnvVar('RATE_LIMIT_MAX_REQUESTS', '100'), 10),
+    API_URL: process.env.API_URL || process.env.BACKEND_URL || `http://localhost:${parseInt(getEnvVar('PORT', '5000'), 10)}`,
 };
 

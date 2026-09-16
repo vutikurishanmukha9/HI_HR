@@ -30,10 +30,8 @@ export interface CreateCampaignDTO {
 }
 
 export interface RecipientDTO {
-    fullName: string;
     email: string;
-    companyName: string;
-    jobTitle?: string;
+    [key: string]: any;
 }
 
 export interface EmailCredentialDTO {

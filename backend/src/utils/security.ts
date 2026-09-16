@@ -70,7 +70,7 @@ export const logSecurityWarnings = (config: {
     const warnings: string[] = [];
 
     if (config.nodeEnv === 'development') {
-        console.warn('\n⚠️  Running in DEVELOPMENT mode - not suitable for production!\n');
+        console.warn('\n[WARNING] Running in DEVELOPMENT mode - not suitable for production!\n');
     }
 
     if (isInsecureSecret(config.encryptionKey)) {
@@ -86,8 +86,8 @@ export const logSecurityWarnings = (config: {
     }
 
     if (warnings.length > 0) {
-        console.warn('\n🔒 SECURITY WARNINGS:');
-        warnings.forEach(w => console.warn(`   ⚠️  ${w}`));
+        console.warn('\n[SECURITY WARNINGS]:');
+        warnings.forEach(w => console.warn(`   * ${w}`));
         console.warn('\n   Generate secure keys with:');
         console.warn('   node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"');
         console.warn('');

@@ -3,8 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import PasswordStrengthMeter from '../components/PasswordStrengthMeter';
 
 /**
- * AuthPage Component - Premium Login/Register Design
- * Handles user authentication with animated background
+ * AuthPage Component - Modern Light Design System
+ * Crisp, focused authentication with strong typography and semantic feedback
  */
 const AuthPage: React.FC = () => {
     const { login, register } = useAuth();
@@ -39,92 +39,83 @@ const AuthPage: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4">
-            {/* Animated background orbs — warmer tones */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-1/4 left-1/4 w-80 h-80 rounded-full blur-[100px] animate-pulse"
-                    style={{ background: 'rgba(99, 102, 241, 0.12)' }} />
-                <div className="absolute bottom-1/3 right-1/4 w-72 h-72 rounded-full blur-[100px] animate-pulse"
-                    style={{ background: 'rgba(168, 85, 247, 0.1)', animationDelay: '1s' }} />
-                <div className="absolute top-1/2 right-1/3 w-64 h-64 rounded-full blur-[100px] animate-pulse"
-                    style={{ background: 'rgba(20, 184, 166, 0.08)', animationDelay: '2s' }} />
-            </div>
-
-            {/* Main Card */}
-            <div className="relative w-full max-w-md fade-in">
-                <div className="glass-card p-8 md:p-10">
-                    {/* Logo & Title */}
+        <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-canvas">
+            <div className="w-full max-w-md">
+                {/* Main Card */}
+                <div className="surface-card p-8 sm:p-10 border border-border shadow-md">
+                    {/* Brand Header */}
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5 shadow-lg"
-                            style={{ background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #06b6d4 100%)' }}>
-                            <span className="text-white font-extrabold text-2xl" style={{ fontFamily: "'Outfit', sans-serif" }}>Hi</span>
+                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent text-white font-bold text-xl mb-3 shadow-sm">
+                            Hi
                         </div>
-                        <h1 className="text-4xl font-extrabold mb-2 text-brand">HiHR</h1>
-                        <p style={{ color: '#94a3b8', fontSize: '0.9375rem' }}>Smart HR Email Outreach</p>
+                        <h1 className="text-2xl font-bold tracking-tight text-ink">
+                            {isLogin ? 'Welcome back to HiHR' : 'Create your account'}
+                        </h1>
+                        <p className="text-sm text-ink-muted mt-1.5">
+                            {isLogin ? 'Sign in to access your outreach campaigns' : 'Start sending personalized cold outreach in minutes'}
+                        </p>
                     </div>
 
-                    {/* Tab Switcher */}
-                    <div className="flex p-1 mb-8 rounded-xl" style={{ background: 'rgba(148, 163, 184, 0.06)' }}>
+                    {/* Segmented Control */}
+                    <div className="flex p-1 mb-6 rounded-lg bg-canvas border border-border">
                         <button
-                            onClick={() => setIsLogin(true)}
-                            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 text-sm ${isLogin
-                                ? 'text-white shadow-lg'
-                                : 'hover:text-white'
-                                }`}
-                            style={{
-                                background: isLogin ? 'linear-gradient(135deg, #6366f1, #a855f7)' : 'transparent',
-                                color: isLogin ? '#fff' : '#64748b',
-                            }}
+                            type="button"
+                            onClick={() => { setIsLogin(true); setError(''); }}
+                            className={`flex-1 py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-150 ${
+                                isLogin
+                                    ? 'bg-card text-ink shadow-xs border border-border'
+                                    : 'text-ink-muted hover:text-ink'
+                            }`}
                         >
                             Sign In
                         </button>
                         <button
-                            onClick={() => setIsLogin(false)}
-                            className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-300 text-sm ${!isLogin
-                                ? 'text-white shadow-lg'
-                                : 'hover:text-white'
-                                }`}
-                            style={{
-                                background: !isLogin ? 'linear-gradient(135deg, #6366f1, #a855f7)' : 'transparent',
-                                color: !isLogin ? '#fff' : '#64748b',
-                            }}
+                            type="button"
+                            onClick={() => { setIsLogin(false); setError(''); }}
+                            className={`flex-1 py-2.5 px-4 rounded-md text-sm font-semibold transition-all duration-150 ${
+                                !isLogin
+                                    ? 'bg-card text-ink shadow-xs border border-border'
+                                    : 'text-ink-muted hover:text-ink'
+                            }`}
                         >
                             Register
                         </button>
                     </div>
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         {!isLogin && (
-                            <div className="slide-up">
-                                <label className="block text-sm font-medium mb-2" style={{ color: '#94a3b8', letterSpacing: '0.03em' }}>
+                            <div className="space-y-1.5 animate-fadeIn">
+                                <label className="block text-xs font-semibold uppercase tracking-wider text-ink-secondary">
                                     Full Name
                                 </label>
                                 <input
                                     type="text"
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
-                                    placeholder="John Doe"
+                                    placeholder="Jane Doe"
+                                    className="input"
                                     required={!isLogin}
                                 />
                             </div>
                         )}
 
-                        <div>
-                            <label className="block text-sm font-medium mb-2" style={{ color: '#94a3b8', letterSpacing: '0.03em' }}>
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-semibold uppercase tracking-wider text-ink-secondary">
                                 Email Address
                             </label>
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="you@example.com"
+                                placeholder="name@company.com"
+                                className="input"
                                 required
                             />
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium mb-2" style={{ color: '#94a3b8', letterSpacing: '0.03em' }}>
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-semibold uppercase tracking-wider text-ink-secondary">
                                 Password
                             </label>
                             <input
@@ -132,6 +123,7 @@ const AuthPage: React.FC = () => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
+                                className="input"
                                 required
                                 minLength={8}
                             />
@@ -139,45 +131,38 @@ const AuthPage: React.FC = () => {
                         </div>
 
                         {error && (
-                            <div className="p-4 rounded-xl" style={{ background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.25)' }}>
-                                <p className="text-sm flex items-center gap-2" style={{ color: '#fb7185' }}>
-                                    <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                                    </svg>
-                                    {error}
-                                </p>
+                            <div className="p-3.5 rounded-lg flex items-start gap-2.5 bg-danger-light border border-red-200 text-danger animate-fadeIn">
+                                <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <p className="text-sm font-medium leading-snug">{error}</p>
                             </div>
                         )}
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-4 rounded-xl font-semibold text-white transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed text-sm"
-                            style={{
-                                background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-                                boxShadow: loading ? 'none' : '0 4px 20px rgba(99, 102, 241, 0.35)',
-                                letterSpacing: '0.02em',
-                            }}
+                            className="btn btn-primary w-full py-3 text-sm font-semibold mt-2 shadow-xs"
                         >
                             {loading ? (
                                 <span className="flex items-center justify-center gap-2">
-                                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                    <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24" fill="none">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                     </svg>
-                                    Please wait...
+                                    Processing…
                                 </span>
                             ) : isLogin ? 'Sign In' : 'Create Account'}
                         </button>
                     </form>
 
-                    {/* Info Box */}
-                    <div className="mt-6 p-4 rounded-xl" style={{ background: 'rgba(20, 184, 166, 0.08)', border: '1px solid rgba(20, 184, 166, 0.2)' }}>
-                        <p className="text-sm flex items-start gap-2" style={{ color: '#5eead4' }}>
-                            <svg className="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                            </svg>
-                            <span>Your Gmail credentials are encrypted end-to-end and stored securely on our servers.</span>
+                    {/* Security Info Box */}
+                    <div className="mt-6 p-3.5 rounded-lg bg-subdued border border-border flex items-start gap-2.5">
+                        <svg className="w-4 h-4 text-ink-muted flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <p className="text-xs text-ink-secondary leading-relaxed">
+                            Your Gmail App Passwords and outreach configurations are encrypted with AES-256 before storage.
                         </p>
                     </div>
                 </div>

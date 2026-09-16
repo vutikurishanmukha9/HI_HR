@@ -31,7 +31,7 @@ interface TrackingData {
 
 /**
  * EmailTrackingStats Component
- * Displays email open and click tracking statistics
+ * Displays email open and click tracking statistics using the Hallmark design system.
  */
 const EmailTrackingStats: React.FC<{ campaignId?: string }> = ({ campaignId }) => {
     const [data, setData] = useState<TrackingData | null>(null);
@@ -65,11 +65,11 @@ const EmailTrackingStats: React.FC<{ campaignId?: string }> = ({ campaignId }) =
 
     if (loading) {
         return (
-            <div className="glass-card p-6 animate-pulse">
-                <div className="h-6 bg-white/10 rounded w-1/3 mb-4"></div>
+            <div className="surface-card p-6 animate-shimmer">
+                <div className="h-5 bg-neutral-200 rounded w-1/3 mb-4"></div>
                 <div className="grid grid-cols-4 gap-4">
                     {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-16 bg-white/10 rounded"></div>
+                        <div key={i} className="h-16 bg-neutral-100 rounded-xl"></div>
                     ))}
                 </div>
             </div>
@@ -78,9 +78,9 @@ const EmailTrackingStats: React.FC<{ campaignId?: string }> = ({ campaignId }) =
 
     if (error) {
         return (
-            <div className="glass-card p-6 text-center text-red-400">
-                <p>{error}</p>
-                <button onClick={loadTrackingData} className="mt-2 text-blue-400 hover:underline">
+            <div className="surface-card p-6 text-center text-danger bg-danger-light border border-red-200">
+                <p className="text-xs font-medium">{error}</p>
+                <button onClick={loadTrackingData} className="mt-2 text-accent text-xs font-semibold hover:underline">
                     Retry
                 </button>
             </div>
@@ -89,9 +89,9 @@ const EmailTrackingStats: React.FC<{ campaignId?: string }> = ({ campaignId }) =
 
     if (!data || data.summary.totalSent === 0) {
         return (
-            <div className="glass-card p-6 text-center text-gray-400">
-                <p>No tracking data available yet.</p>
-                <p className="text-sm mt-1">Send some emails to see tracking statistics.</p>
+            <div className="surface-card p-6 text-center text-ink-muted">
+                <p className="text-sm font-medium">No tracking data available yet.</p>
+                <p className="text-xs mt-1">Send some emails to see tracking statistics.</p>
             </div>
         );
     }
@@ -99,18 +99,18 @@ const EmailTrackingStats: React.FC<{ campaignId?: string }> = ({ campaignId }) =
     const { summary, details } = data;
 
     return (
-        <div className="glass-card p-6">
+        <div className="surface-card p-6 border border-border shadow-xs">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                    <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <h3 className="text-base font-bold text-ink flex items-center gap-2">
+                    <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
-                    Email Tracking
+                    Email Delivery & Engagement
                 </h3>
                 <button
                     onClick={() => setShowDetails(!showDetails)}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
+                    className="btn btn-secondary text-xs px-3 py-1.5"
                 >
                     {showDetails ? 'Hide Details' : 'Show Details'}
                 </button>
@@ -122,37 +122,33 @@ const EmailTrackingStats: React.FC<{ campaignId?: string }> = ({ campaignId }) =
                     label="Sent"
                     value={summary.totalSent}
                     icon={<SendIcon />}
-                    color="blue"
                 />
                 <StatCard
                     label="Opened"
                     value={summary.totalOpened}
                     icon={<EyeIcon />}
-                    color="green"
                 />
                 <StatCard
                     label="Open Rate"
                     value={`${summary.openRate}%`}
                     icon={<ChartIcon />}
-                    color="purple"
                 />
                 <StatCard
                     label="Clicks"
                     value={summary.totalClicks}
                     icon={<ClickIcon />}
-                    color="orange"
                 />
             </div>
 
             {/* Open Rate Progress Bar */}
-            <div className="mb-6">
-                <div className="flex justify-between text-sm mb-2">
-                    <span className="text-gray-400">Open Rate</span>
-                    <span className="text-white font-medium">{summary.openRate}%</span>
+            <div className="mb-6 p-4 rounded-xl bg-neutral-50 border border-border">
+                <div className="flex justify-between text-xs mb-2">
+                    <span className="font-semibold text-ink-secondary uppercase tracking-wider">Campaign Open Rate</span>
+                    <span className="text-ink font-bold tabular-nums">{summary.openRate}%</span>
                 </div>
-                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-2 bg-neutral-200 rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-500"
+                        className="h-full bg-accent transition-all duration-500 rounded-full"
                         style={{ width: `${summary.openRate}%` }}
                     />
                 </div>
@@ -160,40 +156,40 @@ const EmailTrackingStats: React.FC<{ campaignId?: string }> = ({ campaignId }) =
 
             {/* Details Table */}
             {showDetails && details.length > 0 && (
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                <div className="overflow-x-auto border border-border rounded-xl">
+                    <table className="table">
                         <thead>
-                            <tr className="text-left text-gray-400 border-b border-white/10">
-                                <th className="pb-3">Recipient</th>
-                                <th className="pb-3">Status</th>
-                                <th className="pb-3">Opens</th>
-                                <th className="pb-3">Clicks</th>
-                                <th className="pb-3">First Opened</th>
+                            <tr>
+                                <th className="text-[11px]">Recipient</th>
+                                <th className="text-[11px]">Status</th>
+                                <th className="text-[11px]">Opens</th>
+                                <th className="text-[11px]">Clicks</th>
+                                <th className="text-[11px]">First Opened</th>
                             </tr>
                         </thead>
                         <tbody>
                             {details.map((detail, index) => (
-                                <tr key={index} className="border-b border-white/5 hover:bg-white/5">
-                                    <td className="py-3 text-white truncate max-w-[200px]">
+                                <tr key={index} className="hover:bg-neutral-50 transition-colors">
+                                    <td className="font-mono text-xs text-ink truncate max-w-[200px]">
                                         {detail.recipientEmail}
                                     </td>
-                                    <td className="py-3">
+                                    <td>
                                         {detail.opened ? (
-                                            <span className="px-2 py-1 text-xs rounded-full bg-green-500/20 text-green-400">
+                                            <span className="badge badge-success">
                                                 Opened
                                             </span>
                                         ) : (
-                                            <span className="px-2 py-1 text-xs rounded-full bg-gray-500/20 text-gray-400">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-neutral-100 text-neutral-500 border border-neutral-200">
                                                 Not Opened
                                             </span>
                                         )}
                                     </td>
-                                    <td className="py-3 text-white">{detail.openCount}</td>
-                                    <td className="py-3 text-white">{detail.clicks}</td>
-                                    <td className="py-3 text-gray-400">
+                                    <td className="text-ink font-mono text-xs">{detail.openCount}</td>
+                                    <td className="text-ink font-mono text-xs">{detail.clicks}</td>
+                                    <td className="text-ink-muted font-mono text-xs">
                                         {detail.firstOpenedAt
                                             ? new Date(detail.firstOpenedAt).toLocaleString()
-                                            : '-'}
+                                            : '—'}
                                     </td>
                                 </tr>
                             ))}
@@ -206,28 +202,22 @@ const EmailTrackingStats: React.FC<{ campaignId?: string }> = ({ campaignId }) =
 };
 
 // Helper Components
-const StatCard: React.FC<{
+interface HelperStatCardProps {
     label: string;
     value: string | number;
     icon: React.ReactNode;
-    color: 'blue' | 'green' | 'purple' | 'orange';
-}> = ({ label, value, icon, color }) => {
-    const colors = {
-        blue: 'from-blue-500 to-indigo-600',
-        green: 'from-green-500 to-emerald-600',
-        purple: 'from-purple-500 to-violet-600',
-        orange: 'from-amber-500 to-orange-600',
-    };
+}
 
+const StatCard: React.FC<HelperStatCardProps> = ({ label, value, icon }) => {
     return (
-        <div className="bg-white/5 rounded-lg p-4">
+        <div className="bg-card border border-border rounded-xl p-4 shadow-xs">
             <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg bg-gradient-to-br ${colors[color]} text-white`}>
+                <div className="p-2 rounded-lg bg-accent-light text-accent flex items-center justify-center flex-shrink-0">
                     {icon}
                 </div>
-                <div>
-                    <p className="text-xs text-gray-400 uppercase">{label}</p>
-                    <p className="text-xl font-bold text-white">{value}</p>
+                <div className="min-w-0 flex-1">
+                    <p className="text-[11px] font-semibold text-ink-secondary uppercase tracking-wider truncate">{label}</p>
+                    <p className="text-xl font-bold text-ink tabular-nums leading-tight truncate">{value}</p>
                 </div>
             </div>
         </div>

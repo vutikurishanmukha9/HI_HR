@@ -27,6 +27,7 @@ model User {
   
   emailCredentials  EmailCredential[]
   campaigns         Campaign[]
+  templates         EmailTemplate[]
 
   @@map("users")
 }
@@ -132,6 +133,22 @@ model EmailDraft {
   
   @@index([userId])
   @@map("email_drafts")
+}
+
+model EmailTemplate {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  name        String
+  category    String    @default("Cold Outreach")
+  subject     String
+  body        String
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("email_templates")
 }
 
 // ============= Email Tracking Models =============

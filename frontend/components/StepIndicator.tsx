@@ -1,4 +1,3 @@
-
 import React from 'react';
 
 interface StepIndicatorProps {
@@ -7,120 +6,116 @@ interface StepIndicatorProps {
 }
 
 const steps = [
-  { number: 1, title: 'Connect', subtitle: 'Gmail', gradient: 'linear-gradient(135deg, #6366f1, #a855f7)', glow: 'rgba(99, 102, 241, 0.4)', color: '#6366f1' },
-  { number: 2, title: 'Upload', subtitle: 'Recipients', gradient: 'linear-gradient(135deg, #10b981, #14b8a6)', glow: 'rgba(20, 184, 166, 0.4)', color: '#14b8a6' },
-  { number: 3, title: 'Compose', subtitle: 'Email', gradient: 'linear-gradient(135deg, #f43f5e, #f97316)', glow: 'rgba(244, 63, 94, 0.4)', color: '#f43f5e' },
-  { number: 4, title: 'Review', subtitle: '& Send', gradient: 'linear-gradient(135deg, #06b6d4, #3b82f6)', glow: 'rgba(6, 182, 212, 0.4)', color: '#06b6d4' },
+  { number: 1, title: 'Connect', subtitle: 'Gmail' },
+  { number: 2, title: 'Upload', subtitle: 'Recipients' },
+  { number: 3, title: 'Compose', subtitle: 'Email' },
+  { number: 4, title: 'Review', subtitle: '& Send' },
 ];
 
 const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep }) => {
   return (
-    <div className="glass-card p-4 sm:p-5">
-      {/* Desktop: horizontal layout */}
-      <div className="hidden sm:flex items-center justify-between">
-        {steps.map((step, idx) => (
-          <React.Fragment key={step.number}>
-            {/* Step Circle + Label */}
-            <div className="flex flex-col items-center" style={{ minWidth: '72px' }}>
-              <div
-                className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-500 relative"
-                style={{
-                  background: currentStep > step.number
-                    ? 'linear-gradient(135deg, #14b8a6, #10b981)'
-                    : currentStep === step.number
-                      ? step.gradient
-                      : 'rgba(148, 163, 184, 0.08)',
-                  border: currentStep >= step.number ? 'none' : '1px solid rgba(148, 163, 184, 0.15)',
-                  boxShadow: currentStep === step.number ? `0 0 25px ${step.glow}` : 'none',
-                  color: currentStep >= step.number ? '#fff' : '#64748b',
-                }}
-              >
-                {currentStep > step.number ? (
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
-                ) : (
-                  <span>{step.number}</span>
-                )}
+    <div className="surface-card p-4 sm:p-5">
+      {/* Desktop layout */}
+      <div className="hidden sm:block relative">
+        {/* Connector track positioned at the exact vertical center of the 40px badges (top = 20px) */}
+        <div className="absolute top-5 left-14 right-14 -translate-y-1/2 h-[2px] bg-neutral-200" aria-hidden="true">
+          <div
+            className="h-full bg-accent transition-all duration-300"
+            style={{
+              width: `${((Math.min(currentStep, steps.length) - 1) / (steps.length - 1)) * 100}%`,
+            }}
+          />
+        </div>
 
-                {/* Pulse ring on current step */}
-                {currentStep === step.number && (
-                  <div
-                    className="absolute inset-0 rounded-xl animate-ping opacity-20"
-                    style={{ background: step.gradient }}
-                  />
-                )}
-              </div>
+        {/* Step columns */}
+        <div className="relative z-10 flex justify-between">
+          {steps.map((step) => {
+            const isCompleted = currentStep > step.number;
+            const isActive = currentStep === step.number;
 
-              {/* Label */}
-              <div className="mt-2 text-center">
-                <span
-                  className="block text-xs font-semibold transition-colors duration-300"
-                  style={{ color: currentStep >= step.number ? '#f1f5f9' : '#64748b' }}
-                >
-                  {step.title}
-                </span>
-                <span
-                  className="block text-[10px] transition-colors duration-300"
-                  style={{ color: currentStep >= step.number ? '#94a3b8' : '#475569' }}
-                >
-                  {step.subtitle}
-                </span>
-              </div>
-            </div>
-
-            {/* Connector Line */}
-            {idx < steps.length - 1 && (
-              <div
-                className="flex-1 mx-3 h-[2px] rounded-full overflow-hidden"
-                style={{ background: 'rgba(148, 163, 184, 0.1)' }}
-              >
+            return (
+              <div key={step.number} className="flex flex-col items-center w-28 text-center">
+                {/* Step Badge */}
                 <div
-                  className="h-full transition-all duration-700 rounded-full"
-                  style={{
-                    width: currentStep > step.number ? '100%' : '0%',
-                    background: `linear-gradient(90deg, ${step.color}, ${steps[idx + 1].color})`,
-                  }}
-                />
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-200 ${
+                    isCompleted
+                      ? 'bg-accent text-white ring-4 ring-white shadow-xs'
+                      : isActive
+                      ? 'bg-accent text-white ring-4 ring-neutral-200 shadow-xs'
+                      : 'bg-white text-ink-muted border border-border ring-4 ring-white'
+                  }`}
+                >
+                  {isCompleted ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <span>{step.number}</span>
+                  )}
+                </div>
+
+                {/* Label & Subtitle safely positioned below with no overlapping */}
+                <div className="mt-2.5 space-y-0.5">
+                  <span
+                    className={`block text-xs font-semibold leading-tight ${
+                      isActive || isCompleted ? 'text-ink' : 'text-ink-muted'
+                    }`}
+                  >
+                    {step.title}
+                  </span>
+                  <span
+                    className={`block text-[11px] leading-tight ${
+                      isActive || isCompleted ? 'text-ink-secondary' : 'text-ink-muted'
+                    }`}
+                  >
+                    {step.subtitle}
+                  </span>
+                </div>
               </div>
-            )}
-          </React.Fragment>
-        ))}
+            );
+          })}
+        </div>
       </div>
 
-      {/* Mobile: compact horizontal dots + current label */}
+      {/* Mobile: compact indicator */}
       <div className="sm:hidden">
-        <div className="flex items-center justify-center gap-3 mb-2">
-          {steps.map((step, idx) => (
-            <React.Fragment key={step.number}>
-              <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-300"
-                style={{
-                  background: currentStep > step.number
-                    ? 'linear-gradient(135deg, #14b8a6, #10b981)'
-                    : currentStep === step.number
-                      ? step.gradient
-                      : 'rgba(148, 163, 184, 0.08)',
-                  border: currentStep >= step.number ? 'none' : '1px solid rgba(148, 163, 184, 0.15)',
-                  color: currentStep >= step.number ? '#fff' : '#64748b',
-                  boxShadow: currentStep === step.number ? `0 0 15px ${step.glow}` : 'none',
-                }}
-              >
-                {currentStep > step.number ? '✓' : step.number}
-              </div>
-              {idx < steps.length - 1 && (
+        <div className="flex items-center justify-center gap-2 mb-2">
+          {steps.map((step, idx) => {
+            const isCompleted = currentStep > step.number;
+            const isActive = currentStep === step.number;
+
+            return (
+              <React.Fragment key={step.number}>
                 <div
-                  className="w-6 h-[2px] rounded-full"
-                  style={{
-                    background: currentStep > step.number ? step.color : 'rgba(148, 163, 184, 0.1)',
-                  }}
-                />
-              )}
-            </React.Fragment>
-          ))}
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
+                    isCompleted
+                      ? 'bg-accent text-white'
+                      : isActive
+                      ? 'bg-accent text-white ring-2 ring-neutral-200'
+                      : 'bg-neutral-100 text-ink-muted border border-border'
+                  }`}
+                >
+                  {isCompleted ? (
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    <span>{step.number}</span>
+                  )}
+                </div>
+                {idx < steps.length - 1 && (
+                  <div
+                    className={`w-6 h-[2px] rounded-full transition-colors ${
+                      currentStep > step.number ? 'bg-accent' : 'bg-neutral-200'
+                    }`}
+                  />
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
-        <p className="text-center text-xs font-medium" style={{ color: '#94a3b8' }}>
-          Step {currentStep}: {steps[currentStep - 1]?.title} {steps[currentStep - 1]?.subtitle}
+        <p className="text-center text-xs font-medium text-ink-secondary">
+          Step {currentStep} of 4: <span className="font-semibold text-ink">{steps[currentStep - 1]?.title} {steps[currentStep - 1]?.subtitle}</span>
         </p>
       </div>
     </div>
