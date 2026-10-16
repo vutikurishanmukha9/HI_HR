@@ -101,6 +101,12 @@ Built with React 19, TypeScript, Tailwind CSS, Node.js, Express, Prisma, and SQL
 - **Brute-Force & Rate Limiting** — Account lockout defense (5 failed attempts trigger a 30-minute lock) and Express rate-limit middleware on critical endpoints.
 - **SMTP Header Injection Defense** — Strict carriage-return and line-feed (`\r\n`) sanitization on email subjects and recipient headers.
 - **Attachment Filtering** — Rejection of executable extensions (`.exe`, `.bat`, `.cmd`, `.sh`, `.ps1`, `.msi`) and 10MB per-file size caps.
+### 8. Infrastructure Architecture & Resilience
+- **Native HTTP Response Compression** — Automatic gzip and deflate compression via Node's built-in `zlib` for JSON and text payloads exceeding 1KB, significantly decreasing network transfer sizes without external dependencies.
+- **Graceful Lifecycle Management** — Process-level `SIGTERM` and `SIGINT` interceptors drain in-flight requests, gracefully disconnect Prisma ORM database pools, disconnect Socket.IO instances, and close active SMTP connections before shutdown.
+- **Connection Leak Sweeper** — Periodic background sweeper automatically cleans and closes idle or expired SMTP transporter sockets every 5 minutes, preventing memory bloat and connection exhaustion.
+- **Deep Health & Readiness Probes** — Dual-tiered observability endpoints (`/health/live`, `/health/ready`, `/health/metrics`) enabling Kubernetes, Docker, and Cloud load balancers to monitor database latency, active connections, and memory telemetry.
+- **Production Bundle Code-Splitting** — Rollup manual vendor chunking isolates heavy client libraries (SheetJS, Socket.IO, DOMPurify) to prevent blocking main-thread execution on initial page load.
 
 ---
 
@@ -122,9 +128,9 @@ HiHR utilizes a monochromatic, warm slate/neutral design system engineered for e
 | :--- | :--- | :--- | :--- |
 | Core Library | React | 19.x | Component-driven UI architecture |
 | Language | TypeScript | 5.x | Strict end-to-end static typing |
-| Build Tool | Vite | 6.x | Fast HMR dev server & production bundling |
+| Build Tool | Vite | 6.x | Fast HMR dev server & Rollup production chunk splitting |
 | Styling | Tailwind CSS | 3.4.x | Utility-first styling with custom design tokens |
-| Spreadsheet Parser | SheetJS (xlsx) | 0.18.5 | Client-side Excel & CSV parsing |
+| Spreadsheet Parser | SheetJS (xlsx) | 0.18.5 | Client-side Excel & CSV parsing (isolated vendor chunk) |
 | HTML Sanitizer | DOMPurify | 3.x | XSS protection for email HTML previews |
 | Real-Time Client | Socket.IO Client | 4.8.x | Real-time campaign dispatch event listeners |
 
@@ -132,13 +138,15 @@ HiHR utilizes a monochromatic, warm slate/neutral design system engineered for e
 | Component | Technology | Version | Purpose |
 | :--- | :--- | :--- | :--- |
 | Runtime | Node.js | 18+ | High-performance asynchronous JavaScript runtime |
-| Web Framework | Express | 4.x | RESTful routing and middleware engine |
-| ORM | Prisma | 5.x | Type-safe database schema modeling & queries |
+| Web Framework | Express | 4.x | RESTful routing, lifecycle hooks, and middleware engine |
+| ORM | Prisma | 5.x | Type-safe database schema modeling & connection management |
 | Database | SQLite / PostgreSQL | - | Development (`dev.db`) / Production database |
-| Mail Transport | Nodemailer | 6.x | SMTP connection pooling and email transmission |
+| Mail Transport | Nodemailer | 6.x | SMTP connection pooling with automated cache sweeper |
+| Compression | Node.js zlib | Built-in | Native zero-dependency gzip/deflate response compression |
 | Cryptography | Node.js Crypto | Built-in | AES-256-CBC credential encryption |
 | DNS Verification | Node.js DNS Promises | Built-in | Native asynchronous MX record lookups |
 | Security Suite | Helmet, bcrypt, express-rate-limit | - | HTTP headers, password hashing, route throttling |
+| Observability | Health & Readiness Probes | Custom | Kubernetes/load-balancer liveness, readiness, and metrics |
 
 ---
 
@@ -298,6 +306,13 @@ HiHR utilizes a monochromatic, warm slate/neutral design system engineered for e
 | `GET` | `/api/track/stats` | Aggregate delivery statistics (sent, failed, success rate) | Yes |
 | `GET` | `/api/track/details` | Granular per-recipient dispatch logs with error diagnostics | Yes |
 | `POST` | `/api/track/reset` | Clear tracking history and reset metric counters | Yes |
+
+### System Health & Observability (`/health`)
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/health` / `/health/live` | Process liveness probe (uptime, PID, Node runtime version) | No |
+| `GET` | `/health/ready` | Deep readiness probe (database ping/latency, active SMTP pool, Socket.IO connections) | No |
+| `GET` | `/health/metrics` | System telemetry (heap & RSS memory usage, CPU usage, aggregate database row counts) | No |
 
 ---
 

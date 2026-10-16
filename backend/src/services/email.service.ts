@@ -35,10 +35,35 @@ export class EmailService {
     private transporterCache: Map<string, CachedTransporter> = new Map();
     private readonly CACHE_TTL = 30 * 60 * 1000; // 30 minutes
     private readonly MAX_CONNECTIONS = 5;
+    private sweeperInterval: NodeJS.Timeout | null = null;
+
+    constructor() {
+        // Run idle sweep every 5 minutes to release stale SMTP sockets
+        this.sweeperInterval = setInterval(() => {
+            this.sweepIdleConnections();
+        }, 5 * 60 * 1000);
+        if (this.sweeperInterval && typeof this.sweeperInterval.unref === 'function') {
+            this.sweeperInterval.unref();
+        }
+    }
 
     /**
-     * Gets or creates a pooled transporter for the given email account
+     * Closes and removes stale SMTP connections exceeding CACHE_TTL
      */
+    private sweepIdleConnections(): void {
+        const now = Date.now();
+        for (const [key, cached] of this.transporterCache.entries()) {
+            if (now - cached.lastUsed >= this.CACHE_TTL) {
+                try {
+                    cached.transporter.close();
+                } catch {
+                    // Ignore close errors
+                }
+                this.transporterCache.delete(key);
+                logger.debug(`Swept idle SMTP transporter: ${key}`);
+            }
+        }
+    }
     private async getTransporter(config: SMTPConfig): Promise<Transporter> {
         const cleanEmail = config.email.trim().toLowerCase();
         const cleanPassword = (config.appPassword || '').replace(/\s+/g, '');
