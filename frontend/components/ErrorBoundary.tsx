@@ -39,8 +39,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
             return (
                 <div className="min-h-screen flex items-center justify-center p-4 bg-canvas">
-                    <div className="surface-card text-center p-8 max-w-md border border-border shadow-md">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl mb-4 bg-danger-light border border-red-200 text-danger shadow-xs">
+                    <div className="surface-card text-center p-8 max-w-md border border-border shadow-md rounded-none">
+                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-none mb-4 bg-danger-light border border-red-200 text-danger shadow-xs">
                             <svg
                                 className="w-7 h-7"
                                 fill="none"
@@ -57,15 +57,15 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                             Something interrupted this operation. You can retry or reload your workspace.
                         </p>
                         {this.state.error && (
-                            <details open className="text-left mb-5 p-3 rounded-lg bg-neutral-50 border border-border">
+                            <details open className="text-left mb-5 p-3 rounded-none bg-neutral-50 border border-border">
                                 <summary className="text-xs font-semibold text-ink-secondary cursor-pointer">
                                     Technical error details
                                 </summary>
-                                <pre className="text-[11px] mt-2 overflow-auto text-danger font-mono leading-tight whitespace-pre-wrap">
+                                <pre className="text-[11px] mt-2 overflow-auto text-danger font-mono leading-tight whitespace-pre-wrap break-all">
                                     {this.state.error.message}
                                 </pre>
                                 {this.state.error.stack && (
-                                    <pre className="text-[10px] mt-2 overflow-auto text-ink-muted font-mono leading-tight max-h-32">
+                                    <pre className="text-[10px] mt-2 overflow-auto text-ink-muted font-mono leading-tight max-h-32 break-all">
                                         {this.state.error.stack}
                                     </pre>
                                 )}

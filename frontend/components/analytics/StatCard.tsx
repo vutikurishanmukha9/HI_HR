@@ -34,7 +34,7 @@ const StatCard: React.FC<StatCardProps> = ({
                     )}
                 </div>
                 
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-accent-light text-accent border border-neutral-200 flex-shrink-0">
+                <div className="w-10 h-10 rounded-none flex items-center justify-center bg-accent-light text-accent border border-neutral-200 flex-shrink-0">
                     {icon}
                 </div>
             </div>

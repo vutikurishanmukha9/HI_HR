@@ -65,11 +65,11 @@ const EmailTrackingStats: React.FC<{ campaignId?: string }> = ({ campaignId }) =
 
     if (loading) {
         return (
-            <div className="surface-card p-6 animate-shimmer">
-                <div className="h-5 bg-neutral-200 rounded w-1/3 mb-4"></div>
+            <div className="surface-card p-6 animate-shimmer rounded-none">
+                <div className="h-5 bg-neutral-200 rounded-none w-1/3 mb-4"></div>
                 <div className="grid grid-cols-4 gap-4">
                     {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-16 bg-neutral-100 rounded-xl"></div>
+                        <div key={i} className="h-16 bg-neutral-100 rounded-none"></div>
                     ))}
                 </div>
             </div>
@@ -141,14 +141,14 @@ const EmailTrackingStats: React.FC<{ campaignId?: string }> = ({ campaignId }) =
             </div>
 
             {/* Open Rate Progress Bar */}
-            <div className="mb-6 p-4 rounded-xl bg-neutral-50 border border-border">
+            <div className="mb-6 p-4 rounded-none bg-neutral-50 border border-border">
                 <div className="flex justify-between text-xs mb-2">
                     <span className="font-semibold text-ink-secondary uppercase tracking-wider">Campaign Open Rate</span>
                     <span className="text-ink font-bold tabular-nums">{summary.openRate}%</span>
                 </div>
-                <div className="h-2 bg-neutral-200 rounded-full overflow-hidden">
+                <div className="h-2 bg-neutral-200 rounded-none overflow-hidden">
                     <div
-                        className="h-full bg-accent transition-all duration-500 rounded-full"
+                        className="h-full bg-accent transition-all duration-500 rounded-none"
                         style={{ width: `${summary.openRate}%` }}
                     />
                 </div>
@@ -156,37 +156,37 @@ const EmailTrackingStats: React.FC<{ campaignId?: string }> = ({ campaignId }) =
 
             {/* Details Table */}
             {showDetails && details.length > 0 && (
-                <div className="overflow-x-auto border border-border rounded-xl">
-                    <table className="table">
+                <div className="overflow-x-auto border border-border rounded-none">
+                    <table className="table w-full">
                         <thead>
                             <tr>
-                                <th className="text-[11px]">Recipient</th>
-                                <th className="text-[11px]">Status</th>
-                                <th className="text-[11px]">Opens</th>
-                                <th className="text-[11px]">Clicks</th>
-                                <th className="text-[11px]">First Opened</th>
+                                <th className="text-[11px] whitespace-nowrap">Recipient</th>
+                                <th className="text-[11px] whitespace-nowrap">Status</th>
+                                <th className="text-[11px] whitespace-nowrap">Opens</th>
+                                <th className="text-[11px] whitespace-nowrap">Clicks</th>
+                                <th className="text-[11px] whitespace-nowrap">First Opened</th>
                             </tr>
                         </thead>
                         <tbody>
                             {details.map((detail, index) => (
                                 <tr key={index} className="hover:bg-neutral-50 transition-colors">
-                                    <td className="font-mono text-xs text-ink truncate max-w-[200px]">
+                                    <td className="font-mono text-xs text-ink truncate max-w-[200px]" title={detail.recipientEmail}>
                                         {detail.recipientEmail}
                                     </td>
                                     <td>
                                         {detail.opened ? (
-                                            <span className="badge badge-success">
+                                            <span className="badge badge-success rounded-none">
                                                 Opened
                                             </span>
                                         ) : (
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-neutral-100 text-neutral-500 border border-neutral-200">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-none text-[11px] font-medium bg-neutral-100 text-neutral-500 border border-neutral-200">
                                                 Not Opened
                                             </span>
                                         )}
                                     </td>
                                     <td className="text-ink font-mono text-xs">{detail.openCount}</td>
                                     <td className="text-ink font-mono text-xs">{detail.clicks}</td>
-                                    <td className="text-ink-muted font-mono text-xs">
+                                    <td className="text-ink-muted font-mono text-xs whitespace-nowrap">
                                         {detail.firstOpenedAt
                                             ? new Date(detail.firstOpenedAt).toLocaleString()
                                             : '—'}
@@ -210,9 +210,9 @@ interface HelperStatCardProps {
 
 const StatCard: React.FC<HelperStatCardProps> = ({ label, value, icon }) => {
     return (
-        <div className="bg-card border border-border rounded-xl p-4 shadow-xs">
+        <div className="bg-card border border-border rounded-none p-4 shadow-xs">
             <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-accent-light text-accent flex items-center justify-center flex-shrink-0">
+                <div className="p-2 rounded-none bg-accent-light text-accent flex items-center justify-center flex-shrink-0">
                     {icon}
                 </div>
                 <div className="min-w-0 flex-1">

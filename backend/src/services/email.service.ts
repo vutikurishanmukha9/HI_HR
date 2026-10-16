@@ -175,11 +175,41 @@ export class EmailService {
     }
 
     /**
-     * Personalizes email content with recipient data
+     * Personalizes email content with recipient data dynamically
      */
-    personalizeContent(template: string, data: Record<string, string>): string {
+    personalizeContent(template: string, data: Record<string, any>): string {
+        if (!template) return '';
         let result = template;
+        const normalizedData: Record<string, string> = {};
+
         for (const [key, value] of Object.entries(data)) {
+            if (value != null && typeof value !== 'object') {
+                normalizedData[key] = String(value);
+            }
+        }
+
+        // Smart alias bridges for cross-compatibility
+        const nameVal = normalizedData.fullName || normalizedData.name || normalizedData.firstName || '';
+        if (nameVal) {
+            if (!normalizedData.name) normalizedData.name = nameVal;
+            if (!normalizedData.fullName) normalizedData.fullName = nameVal;
+            if (!normalizedData.firstName) normalizedData.firstName = normalizedData.firstName || nameVal.split(' ')[0];
+        }
+
+        const companyVal = normalizedData.companyName || normalizedData.company || normalizedData.organization || '';
+        if (companyVal) {
+            if (!normalizedData.company) normalizedData.company = companyVal;
+            if (!normalizedData.companyName) normalizedData.companyName = companyVal;
+        }
+
+        const roleVal = normalizedData.jobTitle || normalizedData.role || normalizedData.title || normalizedData.position || '';
+        if (roleVal) {
+            if (!normalizedData.jobTitle) normalizedData.jobTitle = roleVal;
+            if (!normalizedData.role) normalizedData.role = roleVal;
+            if (!normalizedData.title) normalizedData.title = roleVal;
+        }
+
+        for (const [key, value] of Object.entries(normalizedData)) {
             const placeholder = new RegExp(`\\{${key}\\}`, 'gi');
             result = result.replace(placeholder, value || '');
         }

@@ -45,7 +45,7 @@ const AnalyticsDashboard: React.FC = () => {
             {/* Header Area with Filters & Actions */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 surface-card p-4 sm:p-5">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-accent-light border border-neutral-200 text-accent flex items-center justify-center shadow-xs">
+                    <div className="w-10 h-10 rounded-none bg-accent-light border border-neutral-200 text-accent flex items-center justify-center shadow-xs">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
@@ -107,16 +107,16 @@ const AnalyticsDashboard: React.FC = () => {
             {/* Reset Confirmation Modal */}
             {showResetConfirm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-xs animate-fadeIn">
-                    <div className="surface-card p-6 rounded-2xl max-w-md w-full shadow-lg border border-border space-y-4 animate-scaleUp">
+                    <div className="surface-card p-6 rounded-none max-w-md w-full shadow-lg border border-border space-y-4 animate-scaleUp">
                         <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-danger-light border border-red-200 text-danger flex items-center justify-center flex-shrink-0">
+                            <div className="w-10 h-10 rounded-none bg-danger-light border border-red-200 text-danger flex items-center justify-center flex-shrink-0">
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                             </div>
                             <div className="min-w-0 flex-1">
                                 <h3 className="text-base font-bold text-ink">Reset All Statistics?</h3>
-                                <p className="text-xs text-ink-muted mt-1 leading-relaxed">
+                                <p className="text-xs text-ink-muted mt-1 leading-relaxed break-words">
                                     This will permanently clear all delivery metrics, open tracking records, click logs, and recipient activity{selectedCampaign ? ` for this campaign` : ''}.
                                 </p>
                             </div>
@@ -135,7 +135,7 @@ const AnalyticsDashboard: React.FC = () => {
                                 type="button"
                                 onClick={handleConfirmReset}
                                 disabled={isResetting}
-                                className="btn text-xs px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg shadow-xs flex items-center gap-1.5"
+                                className="btn text-xs px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-none shadow-xs flex items-center gap-1.5"
                             >
                                 {isResetting ? (
                                     <>
@@ -152,17 +152,17 @@ const AnalyticsDashboard: React.FC = () => {
             )}
 
             {resetNotice && (
-                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium animate-fadeIn flex items-center gap-2">
+                <div className="p-3.5 rounded-none bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-medium animate-fadeIn flex items-center gap-2 break-words">
                     <svg className="w-4 h-4 text-emerald-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span>{resetNotice}</span>
+                    <span className="min-w-0 break-words">{resetNotice}</span>
                 </div>
             )}
 
             {error && (
-                <div className="p-3.5 rounded-xl bg-danger-light border border-red-200 text-danger text-xs font-medium animate-fadeIn">
-                    {error}
+                <div className="p-3.5 rounded-none bg-danger-light border border-red-200 text-danger text-xs font-medium animate-fadeIn break-words">
+                    <span className="min-w-0 break-words">{error}</span>
                 </div>
             )}
 

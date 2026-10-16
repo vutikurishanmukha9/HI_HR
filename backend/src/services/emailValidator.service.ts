@@ -1,4 +1,9 @@
 import dns from 'dns';
+import {
+    verificationPipeline,
+    EmailAccountType
+} from '../utils/emailVerificationPipeline';
+
 const dnsPromises = dns.promises;
 
 export interface DomainCheckResult {
@@ -6,16 +11,32 @@ export interface DomainCheckResult {
     hasMx: boolean;
     exchange?: string;
     error?: string;
+    isDisposable: boolean;
+    disposableReason?: string;
+    accountType: EmailAccountType;
+    isRoleAccount?: boolean;
+    isFreeMail?: boolean;
+    email?: string;
+}
+
+interface RawDnsResult {
+    domain: string;
+    hasMx: boolean;
+    exchange?: string;
+    mxIps?: string[];
+    nameservers?: string[];
+    spfRecord?: string;
+    error?: string;
 }
 
 export class EmailValidatorService {
-    private cache: Map<string, { result: DomainCheckResult; cachedAt: number }> = new Map();
+    private cache: Map<string, { result: RawDnsResult; cachedAt: number }> = new Map();
     private readonly CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
     /**
-     * Checks if a single domain has valid MX records
+     * Resolves DNS MX, A, NS, and TXT records with caching and error handling
      */
-    async checkDomainMx(domain: string): Promise<DomainCheckResult> {
+    async resolveDomainDns(domain: string): Promise<RawDnsResult> {
         const cleanDomain = (domain || '').trim().toLowerCase();
         if (!cleanDomain || !cleanDomain.includes('.')) {
             return { domain: cleanDomain, hasMx: false, error: 'Invalid domain syntax' };
@@ -32,15 +53,36 @@ export class EmailValidatorService {
             if (mxRecords && mxRecords.length > 0) {
                 // Sort by priority (lowest number = highest priority)
                 mxRecords.sort((a, b) => a.priority - b.priority);
-                const result: DomainCheckResult = {
+                const primaryExchange = mxRecords[0].exchange;
+
+                // Concurrently query A record for mail server, NS records, and SPF TXT
+                const [mxIpsResult, nsResult, txtResult] = await Promise.allSettled([
+                    dnsPromises.resolve4(primaryExchange),
+                    dnsPromises.resolveNs(cleanDomain),
+                    dnsPromises.resolveTxt(cleanDomain)
+                ]);
+
+                const mxIps = mxIpsResult.status === 'fulfilled' ? mxIpsResult.value : [];
+                const nameservers = nsResult.status === 'fulfilled' ? nsResult.value : [];
+                let spfRecord: string | undefined;
+
+                if (txtResult.status === 'fulfilled' && Array.isArray(txtResult.value)) {
+                    const flat = txtResult.value.flat();
+                    spfRecord = flat.find(t => typeof t === 'string' && t.startsWith('v=spf1'));
+                }
+
+                const result: RawDnsResult = {
                     domain: cleanDomain,
                     hasMx: true,
-                    exchange: mxRecords[0].exchange,
+                    exchange: primaryExchange,
+                    mxIps,
+                    nameservers,
+                    spfRecord,
                 };
                 this.cache.set(cleanDomain, { result, cachedAt: Date.now() });
                 return result;
             } else {
-                const result: DomainCheckResult = {
+                const result: RawDnsResult = {
                     domain: cleanDomain,
                     hasMx: false,
                     error: 'No MX records found for domain',
@@ -58,7 +100,7 @@ export class EmailValidatorService {
                 errorMsg = 'DNS lookup timed out';
             }
 
-            const result: DomainCheckResult = {
+            const result: RawDnsResult = {
                 domain: cleanDomain,
                 hasMx: false,
                 error: errorMsg,
@@ -69,47 +111,110 @@ export class EmailValidatorService {
     }
 
     /**
-     * Concurrently checks MX records for multiple email addresses / domains
+     * Evaluates a single email or domain through the verification pipeline
+     */
+    async checkDomainMx(domain: string): Promise<DomainCheckResult> {
+        const clean = (domain || '').trim().toLowerCase();
+        const dnsResult = await this.resolveDomainDns(clean);
+
+        const evaluated = verificationPipeline.evaluate({
+            email: `verify@${clean}`,
+            localPart: 'verify',
+            domain: clean,
+            hasMx: dnsResult.hasMx,
+            exchange: dnsResult.exchange,
+            mxIps: dnsResult.mxIps,
+            nameservers: dnsResult.nameservers,
+            spfRecord: dnsResult.spfRecord,
+            dnsError: dnsResult.error
+        });
+
+        return {
+            domain: evaluated.domain,
+            hasMx: evaluated.hasMx,
+            exchange: evaluated.exchange,
+            error: evaluated.error,
+            isDisposable: evaluated.isDisposable,
+            disposableReason: evaluated.disposableReason,
+            accountType: evaluated.accountType,
+            isFreeMail: evaluated.isFreeMail
+        };
+    }
+
+    /**
+     * Concurrently checks MX records and evaluates disposable/role status for emails
      */
     async validateEmailsMx(emails: string[]): Promise<Record<string, DomainCheckResult>> {
         const uniqueDomains = new Set<string>();
-        const emailToDomainMap: Record<string, string> = {};
+        const parsedEmails: { original: string; localPart: string; domain: string }[] = [];
 
         for (const email of emails) {
-            if (email && email.includes('@')) {
-                const domain = email.split('@')[1].trim().toLowerCase();
+            const clean = (email || '').trim().toLowerCase();
+            if (clean && clean.includes('@')) {
+                const atIdx = clean.indexOf('@');
+                const localPart = clean.slice(0, atIdx);
+                const domain = clean.slice(atIdx + 1);
                 uniqueDomains.add(domain);
-                emailToDomainMap[email] = domain;
+                parsedEmails.push({ original: email, localPart, domain });
+            } else {
+                parsedEmails.push({ original: email, localPart: '', domain: '' });
             }
         }
 
-        const domainResults: Record<string, DomainCheckResult> = {};
+        // Concurrent DNS resolution in batches of 10
         const domainList = Array.from(uniqueDomains);
-
-        // Process in batches of 10 concurrent lookups
+        const dnsMap: Record<string, RawDnsResult> = {};
         const BATCH_SIZE = 10;
+
         for (let i = 0; i < domainList.length; i += BATCH_SIZE) {
             const batch = domainList.slice(i, i + BATCH_SIZE);
-            const batchPromises = batch.map(d => this.checkDomainMx(d));
-            const batchResults = await Promise.all(batchPromises);
+            const batchResults = await Promise.all(batch.map(d => this.resolveDomainDns(d)));
             batchResults.forEach(r => {
-                domainResults[r.domain] = r;
+                dnsMap[r.domain] = r;
             });
         }
 
-        // Map back to individual emails
+        // Evaluate each email through the verification pipeline
         const emailResults: Record<string, DomainCheckResult> = {};
-        for (const email of emails) {
-            const domain = emailToDomainMap[email];
-            if (domain && domainResults[domain]) {
-                emailResults[email] = domainResults[domain];
-            } else {
-                emailResults[email] = {
-                    domain: domain || 'unknown',
+
+        for (const item of parsedEmails) {
+            if (!item.domain || !dnsMap[item.domain]) {
+                emailResults[item.original] = {
+                    email: item.original,
+                    domain: item.domain || 'unknown',
                     hasMx: false,
+                    isDisposable: false,
+                    accountType: 'invalid',
                     error: 'Invalid email address format',
                 };
+                continue;
             }
+
+            const dnsRes = dnsMap[item.domain];
+            const evaluated = verificationPipeline.evaluate({
+                email: item.original,
+                localPart: item.localPart,
+                domain: item.domain,
+                hasMx: dnsRes.hasMx,
+                exchange: dnsRes.exchange,
+                mxIps: dnsRes.mxIps,
+                nameservers: dnsRes.nameservers,
+                spfRecord: dnsRes.spfRecord,
+                dnsError: dnsRes.error
+            });
+
+            emailResults[item.original] = {
+                email: item.original,
+                domain: evaluated.domain,
+                hasMx: evaluated.hasMx,
+                exchange: evaluated.exchange,
+                error: evaluated.error,
+                isDisposable: evaluated.isDisposable,
+                disposableReason: evaluated.disposableReason,
+                accountType: evaluated.accountType,
+                isRoleAccount: evaluated.isRoleAccount,
+                isFreeMail: evaluated.isFreeMail
+            };
         }
 
         return emailResults;

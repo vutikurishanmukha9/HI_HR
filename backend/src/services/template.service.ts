@@ -19,9 +19,9 @@ export interface TemplateRecord {
     updatedAt?: Date;
 }
 
-// Built-in battle-tested starter templates
+// Built-in battle-tested starter templates across 7 specialized outreach categories
 const SYSTEM_TEMPLATES: TemplateRecord[] = [
-    // --- Cold Outreach (Job Seekers & Business Development) ---
+    // --- 1. Cold Outreach (Job Seekers & Technical Talent) ---
     {
         id: 'sys-exec-inquiry',
         name: 'Direct Opportunity Inquiry',
@@ -62,8 +62,90 @@ const SYSTEM_TEMPLATES: TemplateRecord[] = [
         body: `<p>Hi {fullName},</p><p>I noticed your impressive trajectory at {companyName} and wanted to reach out as a fellow member of our shared professional and academic community.</p><p>I am exploring new challenges in the {jobTitle} space and greatly admire the standard of excellence your team maintains. If your schedule permits, I would appreciate the chance to hear your perspective on the company's trajectory and team culture.</p><p>Would you have 10 minutes for a brief introductory chat sometime next week?</p><p>Warm regards,</p>`,
         isSystem: true,
     },
+    {
+        id: 'sys-opensource-pitch',
+        name: 'Open-Source & Code Contribution Pitch',
+        category: 'Cold Outreach',
+        subject: 'Contributions to open source & ideas for {companyName}',
+        body: `<p>Hi {fullName},</p><p>I have been following your engineering blogs and open-source contributions at {companyName}. I recently worked on a public module addressing similar architectural patterns and thought you might find the approach interesting.</p><p>As an active builder in this space, I am eager to apply this hands-on depth to your core initiatives as a {jobTitle}.</p><p>Would you be open to a 10-minute technical exchange sometime this week?</p><p>Best regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-competitor-experience',
+        name: 'Direct Industry Domain Expertise',
+        category: 'Cold Outreach',
+        subject: '{jobTitle} insights from direct industry experience for {companyName}',
+        body: `<p>Hi {fullName},</p><p>Having worked directly in our industry over the past few years, I have experienced first-hand the operational hurdles and competitive dynamics that {companyName} is navigating.</p><p>Because of this shared context, I can step into your {jobTitle} opening with zero ramp-up time and deliver meaningful impact from day one.</p><p>Could we find 10 minutes for an exploratory chat this Thursday or Friday?</p><p>Kind regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-fast-learner-entry',
+        name: 'High-Velocity Builder (Hunger & Speed)',
+        category: 'Cold Outreach',
+        subject: 'Driven {jobTitle} applicant for {companyName}',
+        body: `<p>Hi {fullName},</p><p>I know your inbox is full, so I will be direct: I am a disciplined, high-velocity builder looking to earn a spot on {companyName}'s engineering team.</p><p>Over the past year, I have shipped multiple complete projects end-to-end, prioritizing clean code, test coverage, and documentation. I am ready to tackle whatever high-priority backlog items your team needs executed.</p><p>Would you be open to giving me 10 minutes to prove what I can bring to your team?</p><p>Best regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-product-ux-audit',
+        name: 'Product & UX Usability Observation',
+        category: 'Cold Outreach',
+        subject: '3 quick observations on {companyName}\'s user experience',
+        body: `<p>Hi {fullName},</p><p>I spent time testing {companyName}'s product this week and took notes on 3 high-impact friction points where minor adjustments could meaningfully boost user activation.</p><p>I put together a short summary with wireframe suggestions that I would be glad to share with your product and engineering leadership.</p><p>Would you be interested in taking a look, completely free with no obligations?</p><p>Kind regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-contract-to-hire',
+        name: 'Low-Risk 2-Week Trial Project',
+        category: 'Cold Outreach',
+        subject: 'Low-risk 2-week trial project for {companyName} ({jobTitle})',
+        body: `<p>Hi {fullName},</p><p>I understand hiring decisions carry risk and take valuable bandwidth away from core development. To eliminate that risk, I would like to propose a 2-week scoped trial project for {companyName}.</p><p>Let me tackle a specific feature or backlog issue on your roadmap. If you are thrilled with my work, we can discuss a permanent {jobTitle} engagement; if not, you keep the code and we part ways amicably.</p><p>Would you be open to discussing a candidate project this week?</p><p>Best regards,</p>`,
+        isSystem: true,
+    },
 
-    // --- Follow-Up Sequences ---
+    // --- 2. Sales & Business Development (B2B Outreach) ---
+    {
+        id: 'sys-b2b-funding-trigger',
+        name: 'Post-Funding / Scaling Milestone Outreach',
+        category: 'Business Development',
+        subject: 'Scaling {companyName}\'s tech operations post-announcement',
+        body: `<p>Hi {fullName},</p><p>Congratulations on {companyName}'s recent milestones and team growth. As companies scale rapidly through this stage, internal operational bottlenecks and infrastructure friction typically become key challenges.</p><p>We help fast-growing organizations streamline their outbound and operational pipelines, increasing execution velocity by over 35% without adding headcount.</p><p>Do you have 10 minutes next Tuesday to see if this could accelerate your current roadmap?</p><p>Best regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-b2b-case-study',
+        name: 'Proven Peer Case Study / ROI Benchmark',
+        category: 'Business Development',
+        subject: 'How similar teams increased pipeline output by 40%',
+        body: `<p>Hi {fullName},</p><p>We recently partnered with a high-growth team facing similar market challenges to {companyName}. Within 60 days, they reduced pipeline delays by 40% while cutting tooling overhead.</p><p>Given your focus on delivering results as {jobTitle}, I thought these benchmark figures would be directly relevant to your quarterly targets.</p><p>Would you be open to reviewing a brief 2-minute summary of how they achieved this?</p><p>Kind regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-b2b-short-ceo',
+        name: 'The 3-Sentence Executive Pitch',
+        category: 'Business Development',
+        subject: 'Quick question regarding {companyName}\'s workflow',
+        body: `<p>Hi {fullName},</p><p>We built a streamlined solution that helps organizations like {companyName} automate repetitive communication and guarantee 99%+ deliverability.</p><p>Teams using our engine have saved an average of 15 hours per week while improving conversion rates.</p><p>Are you open to a brief 5-minute chat this Thursday or Friday?</p><p>Best regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-b2b-video-audit',
+        name: 'Complimentary 90-Second Custom Teardown',
+        category: 'Business Development',
+        subject: 'Recorded a 90-second teardown for {companyName}',
+        body: `<p>Hi {fullName},</p><p>Rather than sending a generic cold pitch, I recorded a quick 90-second video walkthrough showing 2 specific opportunities to optimize your current {jobTitle} workflow at {companyName}.</p><p>It highlights concrete improvements you can implement immediately, with or without us.</p><p>Would you like me to send the private link over for your review?</p><p>Best regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-b2b-cost-efficiency',
+        name: 'Operational Efficiency & Cost Reduction',
+        category: 'Business Development',
+        subject: 'Reducing operational overhead for {companyName}',
+        body: `<p>Hi {fullName},</p><p>In today's market, maximizing team efficiency while eliminating redundant SaaS subscriptions is top of mind for forward-thinking leadership.</p><p>Our infrastructure consolidates disparate outbound and validation tooling into a unified, high-performance platform, typically reducing tool spend by 30-50%.</p><p>Would you be interested in seeing a quick cost comparison for {companyName}?</p><p>Kind regards,</p>`,
+        isSystem: true,
+    },
+
+    // --- 3. Follow-Up Sequences ---
     {
         id: 'sys-polite-followup-1',
         name: 'Polite Follow-up #1 (Gentle Bump)',
@@ -81,18 +163,34 @@ const SYSTEM_TEMPLATES: TemplateRecord[] = [
         isSystem: true,
     },
     {
+        id: 'sys-followup-quick-thought',
+        name: 'Follow-up #3: "Did this get buried?" (Short)',
+        category: 'Follow Up',
+        subject: 'Re: {companyName} {jobTitle} inquiry',
+        body: `<p>Hi {fullName},</p><p>I know how quickly inboxes fill up. Just wanted to float this to the top of your list in case it got buried under other priorities.</p><p>Would you have 5 minutes for a quick chat regarding your {jobTitle} needs at {companyName}?</p><p>Best regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-followup-resource-share',
+        name: 'Follow-up #4: Helpful Industry Resource',
+        category: 'Follow Up',
+        subject: 'Thought of {companyName}: relevant industry benchmark',
+        body: `<p>Hi {fullName},</p><p>Regardless of whether you are actively hiring for {jobTitle} roles right now, I came across this benchmark report on technical delivery efficiency and thought your team at {companyName} would find value in it.</p><p>No need to reply if your plate is full. Hope you find the insights helpful!</p><p>Warm regards,</p>`,
+        isSystem: true,
+    },
+    {
         id: 'sys-breakup-email',
-        name: 'Follow-up #3: Permission to Close the Loop',
+        name: 'Follow-up #5: Permission to Close the Loop',
         category: 'Follow Up',
         subject: 'Closing the loop on {companyName} {jobTitle}',
         body: `<p>Hi {fullName},</p><p>I have reached out a couple of times regarding {jobTitle} opportunities with {companyName}. Since I have not heard back, I assume priorities have shifted or your hiring roadmap is currently full.</p><p>I will stop following up for now so I don't clutter your inbox. If timing aligns better down the road, please feel free to reconnect.</p><p>Wishing you and {companyName} continued success,</p>`,
         isSystem: true,
     },
 
-    // --- Referral & Networking ---
+    // --- 4. Referral & Professional Networking ---
     {
         id: 'sys-referral-request',
-        name: 'Team Introduction & Referral',
+        name: 'Team Introduction & Referral Request',
         category: 'Referral',
         subject: 'Connecting regarding {companyName} & team roles',
         body: `<p>Hi {fullName},</p><p>I noticed your work at {companyName} and wanted to reach out. I am currently exploring new career opportunities and admire the high-caliber culture your team has established.</p><p>I noticed an open {jobTitle} position and would love to ask you a couple of brief questions about your experience on the team before submitting an application.</p><p>Would you be open to a quick 5-minute conversation or message exchange?</p><p>Thank you for your time,</p>`,
@@ -106,8 +204,24 @@ const SYSTEM_TEMPLATES: TemplateRecord[] = [
         body: `<p>Hi {fullName},</p><p>I have been following your career journey and contributions at {companyName}. As someone currently working towards similar career milestones in the {jobTitle} domain, your experience stands out as a benchmark.</p><p>I would be grateful for the chance to ask 2 or 3 quick questions about your experience transitioning into your current scope. I promise to be concise and respect your time.</p><p>Would you be open to a quick 10-minute virtual coffee over Zoom or Google Meet?</p><p>Best regards,</p>`,
         isSystem: true,
     },
+    {
+        id: 'sys-mutual-connection',
+        name: 'Mutual Connection Introduction Bridge',
+        category: 'Referral',
+        subject: 'Connecting through shared network regarding {companyName}',
+        body: `<p>Hi {fullName},</p><p>I noticed we share mutual connections in the industry, and your contributions to {companyName} frequently came up as a benchmark for high-execution teams.</p><p>I am exploring senior {jobTitle} roles where I can contribute to strong engineering cultures. If you have a moment, I would value any brief perspective on how your team approaches technical scaling.</p><p>Would you be open to connecting?</p><p>Warm regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-event-speaker',
+        name: 'Conference & Event Speaker Follow-up',
+        category: 'Referral',
+        subject: 'Loved your talk on architecture + quick question',
+        body: `<p>Hi {fullName},</p><p>I recently attended your presentation regarding technical scaling and was particularly struck by your insights on system modularity and team ownership.</p><p>Seeing how you implement these principles at {companyName} made it clear that your organization is building for the long term. As an experienced {jobTitle}, I would welcome the chance to connect and stay in touch.</p><p>Thank you for sharing your expertise with the community!</p><p>Best regards,</p>`,
+        isSystem: true,
+    },
 
-    // --- Executive & Leadership ---
+    // --- 5. Executive & Leadership Outreach ---
     {
         id: 'sys-executive-alignment',
         name: 'Direct to Hiring Lead / Department Head',
@@ -124,8 +238,24 @@ const SYSTEM_TEMPLATES: TemplateRecord[] = [
         body: `<p>Hi {fullName},</p><p>Knowing that your time is valuable, I will get straight to the point. If brought on board as your next {jobTitle} at {companyName}, here are two specific areas where I can deliver immediate impact:</p><ol><li><strong>Process Velocity:</strong> Streamlining delivery pipelines to accelerate feature releases without compromising quality.</li><li><strong>Scalable Architecture:</strong> Reinforcing core reliability standards to ensure smooth operations through your next phase of growth.</li></ol><p>I would welcome 10 minutes to discuss whether these priorities align with your current roadmap.</p><p>Best regards,</p>`,
         isSystem: true,
     },
+    {
+        id: 'sys-exec-turnaround',
+        name: 'Technical Debt & Velocity Modernization',
+        category: 'Executive',
+        subject: 'Accelerating technical velocity at {companyName}',
+        body: `<p>Hi {fullName},</p><p>As engineering organizations grow, maintaining deployment velocity while managing legacy technical debt becomes one of leadership\'s most difficult balancing acts.</p><p>In my recent roles, I have specialized in identifying deployment bottlenecks, modernizing CI/CD infrastructure, and cutting release cycles by half without disrupting production uptime.</p><p>Would 10 minutes next week be worthwhile to explore how I could support {companyName}\'s upcoming release goals?</p><p>Best regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-exec-fractional',
+        name: 'Fractional / Advisory Leadership Offer',
+        category: 'Executive',
+        subject: 'Fractional {jobTitle} advisory for {companyName}',
+        body: `<p>Hi {fullName},</p><p>Many fast-scaling companies need senior technical direction but do not necessarily require a full-time executive hire at their current stage.</p><p>I provide fractional {jobTitle} advisory (10-15 hours/week), focusing on technical architecture, hiring evaluations, and engineering roadmap alignment at a fraction of full-time cost.</p><p>Would you be open to an exploratory conversation to see if this model fits your upcoming objectives?</p><p>Kind regards,</p>`,
+        isSystem: true,
+    },
 
-    // --- Recruiter & Talent Sourcing ---
+    // --- 6. Recruiter & Talent Sourcing ---
     {
         id: 'sys-passive-candidate',
         name: 'Passive Talent Sourcing (High-Demand Role)',
@@ -148,6 +278,48 @@ const SYSTEM_TEMPLATES: TemplateRecord[] = [
         category: 'Recruiter',
         subject: 'Confidential Leadership Search: {jobTitle} at {companyName}',
         body: `<p>Hi {fullName},</p><p>I am conducting a targeted search for an executive {jobTitle} role on behalf of {companyName}. Given your strategic accomplishments and reputation in the sector, your profile stood out immediately.</p><p>This role carries significant organizational influence, competitive executive equity, and direct strategic oversight over critical company initiatives.</p><p>Would you be open to a confidential conversation to explore whether this opportunity aligns with your future ambitions?</p><p>Kind regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-remote-flexibility',
+        name: 'Remote-First & Async Autonomy Sourcing',
+        category: 'Recruiter',
+        subject: 'Remote {jobTitle} opportunity with high autonomy at {companyName}',
+        body: `<p>Hi {fullName},</p><p>I noticed your background in building resilient software systems and wanted to reach out regarding a high-impact {jobTitle} opening with our team at {companyName}.</p><p>We operate as a 100% remote, async-first organization with zero micromanagement, top-tier compensation, and deep technical challenges.</p><p>If you are open to learning more, could I send over a 2-page overview of the role and team compensation philosophy?</p><p>Best regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-re-engage-talent',
+        name: 'Re-Engaging Previous High-Caliber Talent',
+        category: 'Recruiter',
+        subject: 'Checking back in: new {jobTitle} scope at {companyName}',
+        body: `<p>Hi {fullName},</p><p>It has been a little while since we last spoke, but our team at {companyName} has continued to follow your work with great admiration.</p><p>We recently opened an expanded {jobTitle} role that maps closely to the exact strategic direction you expressed interest in during our previous discussions.</p><p>Would you be open to catching up for 10 minutes to see what has evolved on our end?</p><p>Warm regards,</p>`,
+        isSystem: true,
+    },
+
+    // --- 7. Consulting & Agency Services ---
+    {
+        id: 'sys-agency-audit',
+        name: 'Complimentary Architecture / Security Audit',
+        category: 'Consulting',
+        subject: 'Complimentary audit for {companyName}\'s web performance',
+        body: `<p>Hi {fullName},</p><p>Our technical team conducted a brief external performance and deliverability audit of {companyName}'s web assets and identified 3 key areas where latency and domain reputation could be improved.</p><p>We compiled our findings into a concise 1-page report detailing actionable fixes you can implement right away.</p><p>Would you like me to send the PDF over for your engineering team to review?</p><p>Best regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-agency-bandwidth',
+        name: 'On-Demand Engineering Surge Bandwidth',
+        category: 'Consulting',
+        subject: 'Additional {jobTitle} engineering bandwidth for {companyName}',
+        body: `<p>Hi {fullName},</p><p>Hitting tight product deadlines often requires temporary technical reinforcement without the overhead and long delays of full-time hiring.</p><p>We provide senior, vetted {jobTitle} engineers who embed directly into your sprints within 48 hours to help accelerate delivery and clear technical roadblocks.</p><p>Would you be open to a brief chat to see how we could support your upcoming release sprint?</p><p>Kind regards,</p>`,
+        isSystem: true,
+    },
+    {
+        id: 'sys-agency-conversion',
+        name: 'Conversion Rate & Funnel Optimization',
+        category: 'Consulting',
+        subject: 'Quick observations on {companyName}\'s user conversion flow',
+        body: `<p>Hi {fullName},</p><p>While reviewing {companyName}'s current customer onboarding journey, I noticed a couple of minor usability friction points that may be causing avoidable user drop-off.</p><p>In similar client engagements, fixing these specific flow patterns resulted in an immediate 15-25% lift in onboarding conversions.</p><p>Would you be open to a quick 10-minute exchange to discuss these findings?</p><p>Best regards,</p>`,
         isSystem: true,
     }
 ];

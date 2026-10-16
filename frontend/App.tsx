@@ -16,7 +16,7 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-canvas">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-accent text-white font-bold text-lg mb-4 shadow-sm">
+          <div className="inline-flex items-center justify-center w-11 h-11 rounded-none bg-accent text-white font-bold text-lg mb-4 shadow-sm">
             Hi
           </div>
           <div className="spinner mx-auto mb-3" />

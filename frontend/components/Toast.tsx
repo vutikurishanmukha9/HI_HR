@@ -77,7 +77,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 // Toast Container Component
 const ToastContainer: React.FC<{ toasts: Toast[]; removeToast: (id: string) => void }> = ({ toasts, removeToast }) => {
     return (
-        <div className="fixed top-4 right-4 z-50 flex flex-col gap-3 max-w-sm w-full pointer-events-none">
+        <div className="fixed top-4 right-4 z-50 flex flex-col gap-3 max-w-md w-full pointer-events-none">
             {toasts.map(toast => (
                 <ToastItem key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
             ))}
@@ -120,14 +120,14 @@ const ToastItem: React.FC<{ toast: Toast; onClose: () => void }> = ({ toast, onC
     const s = styles[toast.type];
 
     return (
-        <div className="pointer-events-auto surface-card p-3.5 flex items-start gap-3 border border-border shadow-lg bg-card rounded-xl animate-fadeIn">
-            <div className={`p-1.5 rounded-lg flex-shrink-0 ${s.bg} ${s.text} border ${s.border}`}>
+        <div className="pointer-events-auto surface-card p-3.5 flex items-start gap-3 border border-border shadow-lg bg-card rounded-none animate-fadeIn">
+            <div className={`p-1.5 rounded-none flex-shrink-0 ${s.bg} ${s.text} border ${s.border}`}>
                 {icons[toast.type]}
             </div>
             <div className="flex-1 min-w-0">
-                <p className="font-semibold text-xs text-ink leading-snug">{toast.title}</p>
+                <p className="font-semibold text-xs text-ink leading-snug break-words">{toast.title}</p>
                 {toast.message && (
-                    <p className="text-xs text-ink-muted mt-0.5 leading-relaxed">{toast.message}</p>
+                    <p className="text-xs text-ink-muted mt-0.5 leading-relaxed break-words">{toast.message}</p>
                 )}
             </div>
             <button
@@ -137,7 +137,7 @@ const ToastItem: React.FC<{ toast: Toast; onClose: () => void }> = ({ toast, onC
                     e.stopPropagation();
                     onClose();
                 }}
-                className="p-1 -m-1 rounded-md text-ink-muted hover:text-ink hover:bg-neutral-100 transition-colors flex-shrink-0"
+                className="p-1 -m-1 rounded-none text-ink-muted hover:text-ink hover:bg-neutral-100 transition-colors flex-shrink-0"
                 aria-label="Close notification"
             >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

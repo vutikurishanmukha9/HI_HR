@@ -46,7 +46,7 @@ const CredentialsForm: React.FC<CredentialsFormProps> = ({ onSave, initialCreden
         <div className="max-w-xl mx-auto space-y-6">
             {/* Header */}
             <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent-light border border-neutral-200 text-accent mb-3 shadow-xs">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-none bg-accent-light border border-neutral-200 text-accent mb-3 shadow-xs">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                     </svg>
@@ -58,12 +58,12 @@ const CredentialsForm: React.FC<CredentialsFormProps> = ({ onSave, initialCreden
             {/* Form Card */}
             <div className="surface-card p-6 border border-border shadow-xs space-y-5 animate-fadeIn">
                 {/* Security Notice */}
-                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
+                <div className="p-3.5 rounded-none bg-amber-50 border border-amber-200">
                     <div className="flex items-start gap-3">
                         <svg className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                         </svg>
-                        <p className="text-xs leading-relaxed text-amber-900">
+                        <p className="text-xs leading-relaxed text-amber-900 break-words">
                             <span className="font-semibold">Security Requirement:</span> Do not use your regular account password. Generate a 16-character dedicated App Password from your Google Account.
                             <a
                                 href="https://support.google.com/accounts/answer/185833"
@@ -146,12 +146,12 @@ const CredentialsForm: React.FC<CredentialsFormProps> = ({ onSave, initialCreden
 
                     {/* Error Message */}
                     {error && (
-                        <div className="p-3 rounded-lg bg-danger-light border border-red-200 text-danger animate-fadeIn">
-                            <p className="text-xs font-medium flex items-center gap-2">
+                        <div className="p-3 rounded-none bg-danger-light border border-red-200 text-danger animate-fadeIn">
+                            <p className="text-xs font-medium flex items-center gap-2 break-words">
                                 <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                                 </svg>
-                                {error}
+                                <span className="min-w-0 break-words">{error}</span>
                             </p>
                         </div>
                     )}

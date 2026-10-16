@@ -113,17 +113,17 @@ const DashboardPage: React.FC = () => {
                 />
             )}
 
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-6xl mx-auto space-y-6">
                 {/* Modern Top Header Bar */}
                 <header className="surface-card p-4 sm:p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-accent text-white flex items-center justify-center font-bold text-base shadow-xs">
+                        <div className="w-10 h-10 rounded-none bg-accent text-white flex items-center justify-center font-bold text-base shadow-xs">
                             Hi
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
                                 <span className="font-bold text-lg text-ink tracking-tight">HiHR</span>
-                                <span className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-accent-light text-accent border border-neutral-200">
+                                <span className="px-2 py-0.5 text-[11px] font-medium rounded-none bg-accent-light text-accent border border-neutral-200">
                                     Outreach Platform
                                 </span>
                             </div>
@@ -132,11 +132,11 @@ const DashboardPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-border">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-neutral-100 border border-border flex items-center justify-center text-xs font-semibold text-ink-secondary">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-8 h-8 rounded-none bg-neutral-100 border border-border flex items-center justify-center text-xs font-semibold text-ink-secondary flex-shrink-0">
                                 {user?.email ? user.email.charAt(0).toUpperCase() : 'U'}
                             </div>
-                            <div className="text-left">
+                            <div className="text-left min-w-0">
                                 <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Signed in</p>
                                 <p className="text-xs font-medium text-ink truncate max-w-[160px] sm:max-w-[200px]" title={user?.email}>
                                     {user?.email}
@@ -145,7 +145,7 @@ const DashboardPage: React.FC = () => {
                         </div>
                         <button
                             onClick={logout}
-                            className="btn btn-secondary text-xs px-3 py-1.5 ml-2"
+                            className="btn btn-secondary text-xs px-3 py-1.5 ml-2 flex-shrink-0"
                         >
                             Sign Out
                         </button>
@@ -154,10 +154,10 @@ const DashboardPage: React.FC = () => {
 
                 {/* Tab Switcher */}
                 <div className="flex justify-center">
-                    <div className="p-1 rounded-xl bg-card border border-border shadow-xs inline-flex gap-1">
+                    <div className="p-1 rounded-none bg-card border border-border shadow-xs inline-flex gap-1">
                         <button
                             onClick={() => setActiveTab('campaign')}
-                            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${
+                            className={`flex items-center gap-2 px-5 py-2 rounded-none text-sm font-semibold transition-all duration-150 ${
                                 activeTab === 'campaign'
                                     ? 'bg-accent text-white shadow-xs'
                                     : 'text-ink-secondary hover:text-ink hover:bg-neutral-100'
@@ -170,7 +170,7 @@ const DashboardPage: React.FC = () => {
                         </button>
                         <button
                             onClick={() => setActiveTab('analytics')}
-                            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-150 ${
+                            className={`flex items-center gap-2 px-5 py-2 rounded-none text-sm font-semibold transition-all duration-150 ${
                                 activeTab === 'analytics'
                                     ? 'bg-accent text-white shadow-xs'
                                     : 'text-ink-secondary hover:text-ink hover:bg-neutral-100'
@@ -301,7 +301,7 @@ const DashboardPage: React.FC = () => {
                         HiHR Outreach Engine · End-to-end encrypted SMTP credentials
                     </p>
                     <div className="flex items-center justify-center gap-1.5 text-[11px] text-ink-muted">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span className="w-2 h-2 rounded-xs bg-emerald-500 animate-pulse"></span>
                         <span>Backend active & connected</span>
                     </div>
                 </footer>

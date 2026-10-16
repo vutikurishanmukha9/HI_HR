@@ -94,6 +94,24 @@ export interface SpamIssue {
   type: string;
   message: string;
   severity: 'high' | 'medium' | 'info';
+  suggestion?: string;
+}
+
+export interface DetectedSpamWord {
+  word: string;
+  category: 'Scam & Fraud' | 'Urgency & Pressure' | 'Deceptive Phrasing' | 'Deliverability Flag';
+  severity: 'high' | 'medium' | 'info';
+  suggestion: string;
+  location: 'subject' | 'body' | 'both';
+}
+
+export interface DeliverabilityMetrics {
+  wordCount: number;
+  readingTimeSeconds: number;
+  linkCount: number;
+  subjectLength: number;
+  hasPersonalization: boolean;
+  allCapsCount: number;
 }
 
 /**
@@ -104,17 +122,27 @@ export interface SpamReport {
   rating: 'Excellent' | 'Good' | 'Needs Improvement';
   triggerWords: string[];
   spamWordsFound?: string[];
+  detectedWords?: DetectedSpamWord[];
+  metrics?: DeliverabilityMetrics;
   issues: SpamIssue[];
 }
 
+export type EmailAccountType = 'business' | 'consumer' | 'disposable' | 'invalid';
+
 /**
- * Domain MX check result
+ * Domain MX and Deliverability check result
  */
 export interface DomainMxResult {
   domain: string;
   hasMx: boolean;
   exchange?: string;
   error?: string;
+  isDisposable?: boolean;
+  disposableReason?: string;
+  accountType?: EmailAccountType;
+  isRoleAccount?: boolean;
+  isFreeMail?: boolean;
+  email?: string;
 }
 
 /**

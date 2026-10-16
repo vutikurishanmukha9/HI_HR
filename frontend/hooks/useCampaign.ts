@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Credentials, Recipient, EmailTemplate, EmailStatus, SendProgressState } from '../types';
 import apiClient from '../services/api';
 import { io, Socket } from 'socket.io-client';
@@ -24,10 +24,21 @@ export function useCampaign() {
     const [credentials, setCredentials] = useState<Credentials | null>(null);
     const [recipients, setRecipients] = useState<Recipient[]>([]);
     
-    // Compute available tags from the first recipient, excluding 'email'
-    const availableTags = recipients.length > 0 
-        ? Object.keys(recipients[0]).filter(key => key !== 'email')
-        : [];
+    // Compute available tags dynamically from all recipients
+    const availableTags = useMemo(() => {
+        if (!recipients || recipients.length === 0) {
+            return ['name', 'company', 'role'];
+        }
+        const tagSet = new Set<string>();
+        recipients.forEach(r => {
+            Object.keys(r).forEach(key => {
+                if (key !== 'email' && !key.startsWith('_') && key !== 'id') {
+                    tagSet.add(key);
+                }
+            });
+        });
+        return Array.from(tagSet);
+    }, [recipients]);
     const [emailTemplate, setEmailTemplate] = useState<EmailTemplate>({
         subject: '',
         body: '',

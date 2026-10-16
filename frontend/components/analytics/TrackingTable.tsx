@@ -36,20 +36,20 @@ const TrackingTable: React.FC<TrackingTableProps> = ({ details, pagination, isLo
     return (
         <div className="surface-card overflow-hidden border border-border shadow-xs">
             <div className="overflow-x-auto">
-                <table className="table">
+                <table className="table w-full">
                     <thead>
                         <tr>
-                            <th className="text-[11px]">Recipient</th>
-                            <th className="text-[11px]">Subject</th>
-                            <th className="text-[11px]">Delivery Status</th>
-                            <th className="text-[11px]">Dispatched At</th>
-                            <th className="text-[11px]">Notes / Diagnostics</th>
+                            <th className="text-[11px] whitespace-nowrap">Recipient</th>
+                            <th className="text-[11px] whitespace-nowrap">Subject</th>
+                            <th className="text-[11px] whitespace-nowrap">Delivery Status</th>
+                            <th className="text-[11px] whitespace-nowrap">Dispatched At</th>
+                            <th className="text-[11px] whitespace-nowrap">Notes / Diagnostics</th>
                         </tr>
                     </thead>
                     <tbody>
                         {details.map((row, i) => (
                             <tr key={i} className="hover:bg-neutral-50 transition-colors">
-                                <td className="whitespace-nowrap font-mono text-xs text-ink font-medium">
+                                <td className="font-mono text-xs text-ink font-medium truncate max-w-[200px]" title={row.recipientEmail}>
                                     {row.recipientEmail}
                                 </td>
                                 <td>
@@ -64,12 +64,12 @@ const TrackingTable: React.FC<TrackingTableProps> = ({ details, pagination, isLo
                                 </td>
                                 <td className="whitespace-nowrap">
                                     {row.status === 'sent' ? (
-                                        <span className="badge badge-success flex items-center gap-1 w-fit">
+                                        <span className="badge badge-success rounded-none flex items-center gap-1 w-fit">
                                             <svg className="w-3 h-3 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" /></svg>
                                             <span>Delivered</span>
                                         </span>
                                     ) : (
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-red-50 text-red-700 border border-red-200 w-fit">
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-none text-[11px] font-medium bg-red-50 text-red-700 border border-red-200 w-fit">
                                             <svg className="w-3 h-3 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                                             <span>Failed</span>
                                         </span>
@@ -80,7 +80,7 @@ const TrackingTable: React.FC<TrackingTableProps> = ({ details, pagination, isLo
                                 </td>
                                 <td className="text-xs">
                                     {row.errorMessage ? (
-                                        <span className="text-danger font-medium line-clamp-1" title={row.errorMessage}>
+                                        <span className="text-danger font-medium truncate max-w-[260px] block" title={row.errorMessage}>
                                             {row.errorMessage}
                                         </span>
                                     ) : (

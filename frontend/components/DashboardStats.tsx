@@ -85,7 +85,7 @@ const DashboardStats: React.FC<DashboardStatsProps> = ({
                     className="surface-card p-4 border border-border shadow-xs"
                 >
                     <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-accent-light text-accent border border-neutral-200 flex items-center justify-center flex-shrink-0">
+                        <div className="p-2 rounded-none bg-accent-light text-accent border border-neutral-200 flex items-center justify-center flex-shrink-0">
                             {stat.icon}
                         </div>
                         <div className="min-w-0 flex-1">

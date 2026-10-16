@@ -105,11 +105,11 @@ const TemplateModal: React.FC<TemplateModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn">
-            <div className="surface-card w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col border border-border shadow-xl bg-card rounded-2xl">
+            <div className="surface-card w-full max-w-5xl max-h-[85vh] overflow-hidden flex flex-col border border-border shadow-xl bg-card rounded-none">
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-white">
                     <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-accent-light text-accent flex items-center justify-center">
+                        <div className="w-7 h-7 rounded-none bg-accent-light text-accent flex items-center justify-center">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
@@ -118,11 +118,11 @@ const TemplateModal: React.FC<TemplateModalProps> = ({
                     </div>
 
                     {/* Tabs */}
-                    <div className="flex items-center gap-1 bg-neutral-100 p-0.5 rounded-lg text-xs">
+                    <div className="flex items-center gap-1 bg-neutral-100 p-0.5 rounded-none text-xs">
                         <button
                             type="button"
                             onClick={() => { setActiveTab('browse'); setFeedbackMsg(null); }}
-                            className={`px-3 py-1 rounded-md font-medium transition-all ${
+                            className={`px-3 py-1 rounded-none font-medium transition-all ${
                                 activeTab === 'browse'
                                     ? 'bg-white text-ink shadow-xs font-semibold'
                                     : 'text-ink-muted hover:text-ink'
@@ -133,7 +133,7 @@ const TemplateModal: React.FC<TemplateModalProps> = ({
                         <button
                             type="button"
                             onClick={() => { setActiveTab('save'); setFeedbackMsg(null); }}
-                            className={`px-3 py-1 rounded-md font-medium transition-all ${
+                            className={`px-3 py-1 rounded-none font-medium transition-all ${
                                 activeTab === 'save'
                                     ? 'bg-white text-ink shadow-xs font-semibold'
                                     : 'text-ink-muted hover:text-ink'
@@ -145,7 +145,7 @@ const TemplateModal: React.FC<TemplateModalProps> = ({
 
                     <button
                         onClick={onClose}
-                        className="p-1.5 rounded-lg text-ink-muted hover:text-ink hover:bg-neutral-100 transition-colors"
+                        className="p-1.5 rounded-none text-ink-muted hover:text-ink hover:bg-neutral-100 transition-colors"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -164,7 +164,7 @@ const TemplateModal: React.FC<TemplateModalProps> = ({
                                     <button
                                         key={cat}
                                         onClick={() => setSelectedCategory(cat)}
-                                        className={`px-2.5 py-1 rounded-full text-[11px] font-medium whitespace-nowrap transition-colors ${
+                                        className={`px-2.5 py-1 rounded-none text-[11px] font-medium whitespace-nowrap transition-colors ${
                                             selectedCategory === cat
                                                 ? 'bg-ink text-white'
                                                 : 'bg-white border border-border text-ink-secondary hover:text-ink'
@@ -188,7 +188,7 @@ const TemplateModal: React.FC<TemplateModalProps> = ({
                                             <div
                                                 key={t.id}
                                                 onClick={() => setSelectedTemplate(t)}
-                                                className={`p-2.5 rounded-xl cursor-pointer border text-left transition-all relative group ${
+                                                className={`p-2.5 rounded-none cursor-pointer border text-left transition-all relative group ${
                                                     isSelected
                                                         ? 'bg-white border-accent shadow-xs'
                                                         : 'bg-white/60 border-border/80 hover:bg-white hover:border-border'
@@ -197,7 +197,7 @@ const TemplateModal: React.FC<TemplateModalProps> = ({
                                                 <div className="flex items-center justify-between gap-1 mb-1">
                                                     <span className="text-xs font-semibold text-ink truncate flex-1">{t.name}</span>
                                                     {t.isSystem ? (
-                                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-neutral-100 text-ink-muted border border-neutral-200 flex-shrink-0">
+                                                        <span className="px-1.5 py-0.5 rounded-none text-[10px] font-medium bg-neutral-100 text-ink-muted border border-neutral-200 flex-shrink-0">
                                                             Starter
                                                         </span>
                                                     ) : (
@@ -228,23 +228,23 @@ const TemplateModal: React.FC<TemplateModalProps> = ({
                                     <div className="p-4 border-b border-border bg-neutral-50/50">
                                         <div className="flex items-center justify-between gap-2 mb-1">
                                             <h3 className="text-sm font-bold text-ink truncate">{selectedTemplate.name}</h3>
-                                            <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-accent-light text-accent border border-neutral-200">
+                                            <span className="px-2 py-0.5 rounded-none text-[10px] font-medium bg-accent-light text-accent border border-neutral-200">
                                                 {selectedTemplate.category}
                                             </span>
                                         </div>
-                                        <div className="text-xs text-ink-secondary">
+                                        <div className="text-xs text-ink-secondary min-w-0">
                                             <span className="font-semibold text-ink-muted">Subject: </span>
-                                            <span className="font-medium text-ink">{selectedTemplate.subject}</span>
+                                            <span className="font-medium text-ink break-words">{selectedTemplate.subject}</span>
                                         </div>
                                     </div>
 
                                     {/* Body Preview */}
-                                    <div className="flex-1 overflow-y-auto p-4 text-xs text-ink leading-relaxed">
+                                    <div className="flex-1 overflow-y-auto p-4 text-xs text-ink leading-relaxed break-words">
                                         <div
                                             dangerouslySetInnerHTML={{
                                                 __html: DOMPurify.sanitize(selectedTemplate.body),
                                             }}
-                                            className="prose prose-xs max-w-none"
+                                            className="prose prose-xs max-w-none break-words"
                                         />
                                     </div>
 
@@ -279,7 +279,7 @@ const TemplateModal: React.FC<TemplateModalProps> = ({
                     /* Save Current Tab */
                     <form onSubmit={handleSaveTemplate} className="p-6 space-y-4 flex-1 overflow-y-auto">
                         {feedbackMsg && (
-                            <div className={`p-3 rounded-xl border text-xs font-medium ${
+                            <div className={`p-3 rounded-none border text-xs font-medium ${
                                 feedbackMsg.type === 'success'
                                     ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                                     : 'bg-red-50 border-red-200 text-red-800'
@@ -315,15 +315,15 @@ const TemplateModal: React.FC<TemplateModalProps> = ({
                             </select>
                         </div>
 
-                        <div className="p-3.5 rounded-xl border border-border bg-neutral-50 text-xs space-y-2">
+                        <div className="p-3.5 rounded-none border border-border bg-neutral-50 text-xs space-y-2">
                             <div>
                                 <span className="font-semibold text-ink-muted">Current Subject: </span>
-                                <span className="font-medium text-ink">{currentSubject || '(Empty Subject)'}</span>
+                                <span className="font-medium text-ink break-words">{currentSubject || '(Empty Subject)'}</span>
                             </div>
                             <div>
                                 <span className="font-semibold text-ink-muted">Content Preview: </span>
                                 <div
-                                    className="mt-1 p-2.5 rounded-lg bg-white border border-border max-h-32 overflow-y-auto"
+                                    className="mt-1 p-2.5 rounded-none bg-white border border-border max-h-32 overflow-y-auto break-words"
                                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(currentBody || '<i>No body</i>') }}
                                 />
                             </div>

@@ -37,7 +37,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep }) => {
               <div key={step.number} className="flex flex-col items-center w-28 text-center">
                 {/* Step Badge */}
                 <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold transition-all duration-200 ${
+                  className={`w-10 h-10 rounded-none flex items-center justify-center text-sm font-bold transition-all duration-200 ${
                     isCompleted
                       ? 'bg-accent text-white ring-4 ring-white shadow-xs'
                       : isActive
@@ -87,7 +87,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep }) => {
             return (
               <React.Fragment key={step.number}>
                 <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
+                  className={`w-8 h-8 rounded-none flex items-center justify-center text-xs font-bold transition-all ${
                     isCompleted
                       ? 'bg-accent text-white'
                       : isActive
@@ -105,7 +105,7 @@ const StepIndicator: React.FC<StepIndicatorProps> = ({ currentStep }) => {
                 </div>
                 {idx < steps.length - 1 && (
                   <div
-                    className={`w-6 h-[2px] rounded-full transition-colors ${
+                    className={`w-6 h-[2px] rounded-none transition-colors ${
                       currentStep > step.number ? 'bg-accent' : 'bg-neutral-200'
                     }`}
                   />

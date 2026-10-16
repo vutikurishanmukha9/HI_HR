@@ -23,21 +23,21 @@ const StatusIndicator: React.FC<{ progress: SendProgressState }> = ({ progress }
     switch (status) {
         case EmailStatus.Queued:
             return (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-neutral-100 text-neutral-600 border border-neutral-200 flex-shrink-0 whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 flex-shrink-0" />
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-[11px] font-medium bg-neutral-100 text-neutral-600 border border-neutral-200 flex-shrink-0 whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-none bg-neutral-400 flex-shrink-0" />
                     <span>Queued</span>
                 </span>
             );
         case EmailStatus.Sending:
             return (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-neutral-100 text-neutral-800 border border-neutral-300 flex-shrink-0 whitespace-nowrap">
-                    <span className="w-1.5 h-1.5 rounded-full bg-neutral-900 animate-pulse flex-shrink-0" />
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-[11px] font-medium bg-neutral-100 text-neutral-800 border border-neutral-300 flex-shrink-0 whitespace-nowrap">
+                    <span className="w-1.5 h-1.5 rounded-none bg-neutral-900 animate-pulse flex-shrink-0" />
                     <span>Sending…</span>
                 </span>
             );
         case EmailStatus.Sent:
             return (
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 flex-shrink-0 whitespace-nowrap">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 flex-shrink-0 whitespace-nowrap">
                     <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -46,7 +46,7 @@ const StatusIndicator: React.FC<{ progress: SendProgressState }> = ({ progress }
             );
         case EmailStatus.Failed:
             return (
-                <span title={error || 'Send failed'} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-medium bg-danger-light text-danger border border-red-200 cursor-help flex-shrink-0 whitespace-nowrap">
+                <span title={error || 'Send failed'} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-[11px] font-medium bg-danger-light text-danger border border-red-200 cursor-help flex-shrink-0 whitespace-nowrap">
                     <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
@@ -117,10 +117,10 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
     const getButtonText = () => isSending ? 'Sending…' : isScheduling ? 'Schedule Campaign' : `Launch Campaign (${recipientsForCampaign.length} Emails)`;
 
     return (
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
             {/* Header */}
             <div className="text-center mb-6">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-accent-light border border-neutral-200 text-accent mb-3 shadow-xs">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-none bg-accent-light border border-neutral-200 text-accent mb-3 shadow-xs">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -144,22 +144,22 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                             </h3>
 
                             <div className="space-y-2.5 text-xs">
-                                <div className="flex justify-between items-center py-1.5 border-b border-border gap-2">
+                                <div className="flex justify-between items-center py-1.5 border-b border-border gap-2 min-w-0">
                                     <span className="text-ink-secondary flex-shrink-0">From Account</span>
-                                    <span className="font-mono text-ink font-medium truncate text-right">{credentials?.email}</span>
+                                    <span className="font-mono text-ink font-medium truncate text-right min-w-0" title={credentials?.email}>{credentials?.email}</span>
                                 </div>
-                                <div className="flex justify-between items-center py-1.5 border-b border-border gap-2">
+                                <div className="flex justify-between items-center py-1.5 border-b border-border gap-2 min-w-0">
                                     <span className="text-ink-secondary flex-shrink-0">Target Outreach</span>
-                                    <span className="font-semibold text-ink truncate text-right">{recipientsForCampaign.length} recipients selected</span>
+                                    <span className="font-semibold text-ink truncate text-right min-w-0">{recipientsForCampaign.length} recipients selected</span>
                                 </div>
-                                <div className="flex justify-between items-center py-1.5 border-b border-border gap-2">
+                                <div className="flex justify-between items-center py-1.5 border-b border-border gap-2 min-w-0">
                                     <span className="text-ink-secondary flex-shrink-0">Subject</span>
-                                    <span className="font-medium text-ink truncate max-w-[220px] text-right" title={emailTemplate.subject}>{emailTemplate.subject}</span>
+                                    <span className="font-medium text-ink truncate max-w-[260px] text-right min-w-0" title={emailTemplate.subject}>{emailTemplate.subject}</span>
                                 </div>
                                 {emailTemplate.attachments && emailTemplate.attachments.length > 0 && (
-                                    <div className="flex justify-between items-center py-1.5 border-b border-border gap-2">
+                                    <div className="flex justify-between items-center py-1.5 border-b border-border gap-2 min-w-0">
                                         <span className="text-ink-secondary flex-shrink-0">Attachments</span>
-                                        <span className="text-ink font-medium truncate text-right">{emailTemplate.attachments.length} files</span>
+                                        <span className="text-ink font-medium truncate text-right min-w-0">{emailTemplate.attachments.length} files</span>
                                     </div>
                                 )}
                             </div>
@@ -167,7 +167,7 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                             <div className="pt-2">
                                 <p className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-1.5">Template Preview</p>
                                 <div
-                                    className="p-3 rounded-lg max-h-28 overflow-y-auto text-xs bg-neutral-50 border border-border text-ink-secondary leading-relaxed"
+                                    className="p-3 rounded-none max-h-28 overflow-y-auto text-xs bg-neutral-50 border border-border text-ink-secondary leading-relaxed break-words"
                                     dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(emailTemplate.body) }}
                                 />
                             </div>
@@ -177,15 +177,15 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                         {isCampaignFinished ? (
                             <div className="surface-card p-5 border border-emerald-200 bg-emerald-50/20 shadow-xs space-y-4">
                                 <h4 className="font-bold text-sm text-ink flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                    <span className="w-2 h-2 rounded-none bg-emerald-500" />
                                     Campaign Execution Summary
                                 </h4>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <div className="text-center p-3.5 rounded-xl bg-white border border-emerald-200 shadow-xs">
+                                    <div className="text-center p-3.5 rounded-none bg-white border border-emerald-200 shadow-xs">
                                         <p className="text-2xl font-bold text-emerald-600 tabular-nums">{sentCount}</p>
                                         <p className="text-xs font-medium text-ink-muted">Delivered</p>
                                     </div>
-                                    <div className="text-center p-3.5 rounded-xl bg-white border border-red-200 shadow-xs">
+                                    <div className="text-center p-3.5 rounded-none bg-white border border-red-200 shadow-xs">
                                         <p className="text-2xl font-bold text-danger tabular-nums">{failedCount}</p>
                                         <p className="text-xs font-medium text-ink-muted">Failed</p>
                                     </div>
@@ -244,7 +244,7 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                                     </div>
                                 </div>
 
-                                <div className="p-3 rounded-xl bg-neutral-50 border border-border space-y-1.5">
+                                <div className="p-3 rounded-none bg-neutral-50 border border-border space-y-1.5">
                                     <div className="flex items-center justify-between">
                                         <label htmlFor="jitter-toggle" className="text-xs font-semibold text-ink cursor-pointer flex items-center gap-1.5">
                                             <svg className="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -258,26 +258,26 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                                             checked={useJitter}
                                             onChange={(e) => setUseJitter(e.target.checked)}
                                             disabled={isSending}
-                                            className="w-4 h-4 rounded text-accent border-border"
+                                            className="w-4 h-4 rounded-none text-accent border-border"
                                         />
                                     </div>
                                     <p className="text-[11px] text-ink-muted leading-relaxed">
-                                        Varies delay between batches (+/-20%) and email sends (300-800ms) to evade automated spam filter detection.
-                                    </p>
+                                         Varies delay between batches (+/-20%) and email sends (300-800ms) to evade automated spam filter detection.
+                                     </p>
                                 </div>
 
                                 <div className="flex items-center gap-2 pt-1">
-                                    <input
-                                        id="schedule-toggle"
-                                        type="checkbox"
-                                        checked={isScheduling}
-                                        onChange={(e) => setIsScheduling(e.target.checked)}
-                                        disabled={isSending}
-                                        className="w-4 h-4 rounded text-accent border-border"
-                                    />
-                                    <label htmlFor="schedule-toggle" className="text-xs font-medium text-ink cursor-pointer">
-                                        Schedule campaign for a future date & time
-                                    </label>
+                                     <input
+                                         id="schedule-toggle"
+                                         type="checkbox"
+                                         checked={isScheduling}
+                                         onChange={(e) => setIsScheduling(e.target.checked)}
+                                         disabled={isSending}
+                                         className="w-4 h-4 rounded-none text-accent border-border"
+                                     />
+                                     <label htmlFor="schedule-toggle" className="text-xs font-medium text-ink cursor-pointer">
+                                         Schedule campaign for a future date & time
+                                     </label>
                                 </div>
 
                                 {isScheduling && (
@@ -298,42 +298,42 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                                 )}
 
                                 <div className="flex gap-2 pt-2">
-                                    <button onClick={onBack} disabled={isSending} className="btn btn-secondary text-xs px-4 py-2">
-                                        Back
-                                    </button>
-                                    <button
-                                        onClick={handleActionClick}
-                                        disabled={isSending || (isScheduling && !scheduleDateTime) || recipientsForCampaign.length === 0}
-                                        className="btn btn-primary flex-1 text-xs py-2.5 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
-                                    >
-                                        {getButtonText()}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                                     <button onClick={onBack} disabled={isSending} className="btn btn-secondary text-xs px-4 py-2">
+                                         Back
+                                     </button>
+                                     <button
+                                         onClick={handleActionClick}
+                                         disabled={isSending || (isScheduling && !scheduleDateTime) || recipientsForCampaign.length === 0}
+                                         className="btn btn-primary flex-1 text-xs py-2.5 disabled:opacity-40 disabled:cursor-not-allowed shadow-xs"
+                                     >
+                                         {getButtonText()}
+                                     </button>
+                                 </div>
+                             </div>
+                         )}
+                     </div>
 
-                    {/* Right Column - Recipient Checklist & Progress */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-bold text-ink">Recipients Queue</h3>
-                            {(isSending || isCampaignFinished) && (
-                                <span className="text-xs font-mono text-ink-muted">
-                                    {sentCount + failedCount} / {campaignSize} ({progressPercentage}%)
-                                </span>
-                            )}
-                        </div>
+                     {/* Right Column - Recipient Checklist & Progress */}
+                     <div className="space-y-3">
+                         <div className="flex items-center justify-between">
+                             <h3 className="text-sm font-bold text-ink">Recipients Queue</h3>
+                             {(isSending || isCampaignFinished) && (
+                                 <span className="text-xs font-mono text-ink-muted">
+                                     {sentCount + failedCount} / {campaignSize} ({progressPercentage}%)
+                                 </span>
+                             )}
+                         </div>
 
-                        {(isSending || isCampaignFinished) && (
-                            <div className="h-2 rounded-full overflow-hidden bg-neutral-200">
-                                <div
-                                    className="h-full rounded-full bg-accent transition-all duration-300"
-                                    style={{ width: `${progressPercentage}%` }}
-                                />
-                            </div>
-                        )}
+                         {(isSending || isCampaignFinished) && (
+                             <div className="h-2 rounded-xs overflow-hidden bg-neutral-200">
+                                 <div
+                                     className="h-full rounded-xs bg-accent transition-all duration-300"
+                                     style={{ width: `${progressPercentage}%` }}
+                                 />
+                             </div>
+                         )}
 
-                        <div className="border border-border rounded-xl overflow-hidden shadow-xs bg-card">
+                         <div className="border border-border rounded-none overflow-hidden shadow-xs bg-card">
                             {!isSending && !isCampaignFinished && (
                                 <div className="px-4 py-2.5 flex items-center justify-between border-b border-border bg-neutral-50">
                                     <div className="flex items-center gap-2">
@@ -342,7 +342,7 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                                             type="checkbox"
                                             checked={recipients.length > 0 && selectedEmails.length === recipients.length}
                                             onChange={handleSelectAll}
-                                            className="w-4 h-4 rounded text-accent border-border"
+                                            className="w-4 h-4 rounded-none text-accent border-border"
                                         />
                                         <label htmlFor="select-all" className="text-xs font-semibold text-ink cursor-pointer">
                                             Select All Contacts
@@ -363,7 +363,7 @@ const ReviewAndSend: React.FC<ReviewAndSendProps> = ({
                                                     type="checkbox"
                                                     checked={selectedEmails.includes(recipient.email)}
                                                     onChange={() => handleRecipientSelect(recipient.email)}
-                                                    className="w-4 h-4 rounded text-accent border-border flex-shrink-0"
+                                                    className="w-4 h-4 rounded-none text-accent border-border flex-shrink-0"
                                                 />
                                             )}
                                             <div className="min-w-0 flex-1">

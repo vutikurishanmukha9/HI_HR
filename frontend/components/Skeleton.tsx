@@ -9,7 +9,7 @@ import React from 'react';
 // Base skeleton with shimmer
 export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
     <div
-        className={`animate-shimmer rounded ${className}`}
+        className={`animate-shimmer rounded-none ${className}`}
     />
 );
 
@@ -24,9 +24,9 @@ export const SkeletonText: React.FC<{ lines?: number; className?: string }> = ({
 
 // Card skeleton
 export const SkeletonCard: React.FC<{ className?: string }> = ({ className = '' }) => (
-    <div className={`surface-card p-6 space-y-4 ${className}`}>
+    <div className={`surface-card p-6 space-y-4 rounded-none ${className}`}>
         <div className="flex items-center gap-4">
-            <Skeleton className="w-12 h-12 rounded-xl" />
+            <Skeleton className="w-12 h-12 rounded-none" />
             <div className="flex-1 space-y-2">
                 <Skeleton className="h-5 w-1/3" />
                 <Skeleton className="h-4 w-1/2" />
@@ -51,7 +51,7 @@ export const SkeletonTableRow: React.FC<{ columns?: number }> = ({ columns = 4 }
 export const SkeletonStats: React.FC = () => (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="surface-card p-4 space-y-2">
+            <div key={i} className="surface-card p-4 space-y-2 rounded-none">
                 <Skeleton className="h-4 w-20" />
                 <Skeleton className="h-8 w-16" />
             </div>
@@ -66,19 +66,19 @@ export const SkeletonAvatar: React.FC<{ size?: 'sm' | 'md' | 'lg' }> = ({ size =
         md: 'w-10 h-10',
         lg: 'w-12 h-12',
     };
-    return <Skeleton className={`${sizes[size]} rounded-full`} />;
+    return <Skeleton className={`${sizes[size]} rounded-none`} />;
 };
 
 // Button skeleton
 export const SkeletonButton: React.FC<{ width?: string }> = ({ width = 'w-24' }) => (
-    <Skeleton className={`h-10 ${width} rounded-lg`} />
+    <Skeleton className={`h-10 ${width} rounded-none`} />
 );
 
 // Form field skeleton
 export const SkeletonFormField: React.FC = () => (
     <div className="space-y-2">
         <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-12 w-full rounded-lg" />
+        <Skeleton className="h-12 w-full rounded-none" />
     </div>
 );
 

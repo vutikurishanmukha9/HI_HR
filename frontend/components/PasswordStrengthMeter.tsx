@@ -87,9 +87,9 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({ password 
         <div className="mt-2.5 space-y-2">
             {/* Strength bar */}
             <div className="flex items-center gap-3">
-                <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-neutral-200">
+                <div className="flex-1 h-1.5 rounded-xs overflow-hidden bg-neutral-200">
                     <div
-                        className="h-full rounded-full transition-all duration-300"
+                        className="h-full rounded-xs transition-all duration-300"
                         style={{
                             width: `${percentage}%`,
                             backgroundColor: strength.color,
@@ -110,7 +110,7 @@ const PasswordStrengthMeter: React.FC<PasswordStrengthMeterProps> = ({ password 
                     {strength.feedback.slice(0, 3).map((tip, index) => (
                         <span
                             key={index}
-                            className="text-[11px] px-2 py-0.5 rounded-md bg-neutral-100 text-ink-secondary border border-border font-medium"
+                            className="text-[11px] px-2 py-0.5 rounded-none bg-neutral-100 text-ink-secondary border border-border font-medium"
                         >
                             {tip}
                         </span>

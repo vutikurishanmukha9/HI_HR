@@ -72,7 +72,7 @@
   --radius-lg:           12px;
   --radius-xl:           16px;
   --radius-2xl:          20px;
-  --radius-pill:         9999px;
+  --radius-pill:         6px; /* Rectangular with subtle rounded corners */
 
   /* ─── Shadows (Subtle, neutral shadows) ─── */
   --shadow-xs:           0 1px 2px 0 rgb(0 0 0 / 0.04);
