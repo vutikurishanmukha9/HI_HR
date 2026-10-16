@@ -3,7 +3,14 @@
  * Handles tracking pixel requests and link click redirects
  */
 import { Router, Response } from 'express';
-import { recordEmailOpen, recordLinkClick, getTrackingStats, getTrackingDetailsPaginated, clearTrackingRecords } from '../services/tracking.service';
+import { 
+    recordEmailOpen, 
+    recordLinkClick, 
+    getTrackingStats, 
+    getTrackingDetailsPaginated, 
+    getUserCampaigns,
+    clearTrackingRecords 
+} from '../services/tracking.service';
 import { authenticate } from '../middleware/auth';
 import { AuthRequest } from '../types';
 import campaignRunManager from '../services/campaignRun.manager';
@@ -178,12 +185,28 @@ router.get('/details', authenticate, async (req: AuthRequest, res: Response) => 
                     successRate: stats.successRate,
                 },
                 details,
-                pagination: stats.pagination
+                pagination: stats.pagination,
+                campaigns: getUserCampaigns(userId),
             },
         });
     } catch (error: any) {
         logger.error('Error getting delivery details', { error: error.message });
         res.status(500).json({ success: false, error: 'Failed to get delivery details' });
+    }
+});
+
+/**
+ * GET /api/track/campaigns
+ * Get list of all campaigns for dropdown with human-readable labels
+ */
+router.get('/campaigns', authenticate, (req: AuthRequest, res: Response) => {
+    try {
+        const userId = req.user!.id;
+        const campaigns = getUserCampaigns(userId);
+        res.json({ success: true, data: campaigns });
+    } catch (error: any) {
+        logger.error('Error getting user campaigns', { error: error.message });
+        res.status(500).json({ success: false, error: 'Failed to fetch campaigns' });
     }
 });
 

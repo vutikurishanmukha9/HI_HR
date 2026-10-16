@@ -241,6 +241,87 @@ export function clearTrackingRecords(userId: string, campaignId?: string): void 
     }
 }
 
+export interface CampaignOption {
+    id: string;
+    label: string;
+    subject: string;
+    sentAt: string;
+    totalCount: number;
+    sentCount: number;
+    failedCount: number;
+}
+
+/**
+ * Get distinct campaigns for a user with human-readable labels and metadata
+ */
+export function getUserCampaigns(userId: string): CampaignOption[] {
+    const records = loadDeliveryRecords().filter(r => r.userId === userId && r.campaignId);
+    const map = new Map<string, {
+        id: string;
+        subject: string;
+        sentAt: string;
+        totalCount: number;
+        sentCount: number;
+        failedCount: number;
+    }>();
+
+    for (const r of records) {
+        const cId = r.campaignId!;
+        const existing = map.get(cId);
+        if (!existing) {
+            map.set(cId, {
+                id: cId,
+                subject: (r.subject || '').trim(),
+                sentAt: r.sentAt,
+                totalCount: 1,
+                sentCount: r.status === 'sent' ? 1 : 0,
+                failedCount: r.status === 'failed' ? 1 : 0,
+            });
+        } else {
+            existing.totalCount += 1;
+            if (r.status === 'sent') existing.sentCount += 1;
+            if (r.status === 'failed') existing.failedCount += 1;
+            if (new Date(r.sentAt).getTime() > new Date(existing.sentAt).getTime()) {
+                existing.sentAt = r.sentAt;
+            }
+            if (!existing.subject && r.subject) {
+                existing.subject = r.subject.trim();
+            }
+        }
+    }
+
+    const list = Array.from(map.values()).sort(
+        (a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime()
+    );
+
+    return list.map((item, index) => {
+        const dateObj = new Date(item.sentAt);
+        const dateStr = !isNaN(dateObj.getTime())
+            ? dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            : '';
+
+        let displaySubject = item.subject || `Campaign #${list.length - index}`;
+        if (displaySubject.length > 34) {
+            displaySubject = displaySubject.substring(0, 34) + '...';
+        }
+
+        const countSuffix = `${item.totalCount} ${item.totalCount === 1 ? 'email' : 'emails'}`;
+        const label = dateStr
+            ? `${displaySubject} (${dateStr} · ${countSuffix})`
+            : `${displaySubject} (${countSuffix})`;
+
+        return {
+            id: item.id,
+            label,
+            subject: item.subject || 'Cold Outreach Email',
+            sentAt: item.sentAt,
+            totalCount: item.totalCount,
+            sentCount: item.sentCount,
+            failedCount: item.failedCount,
+        };
+    });
+}
+
 // Backward-compatible stubs so no external calls break
 export function generateTrackingToken(): string {
     return '';
@@ -269,6 +350,7 @@ export default {
     recordDelivery,
     getTrackingStats,
     getTrackingDetailsPaginated,
+    getUserCampaigns,
     clearTrackingRecords,
     generateTrackingToken,
     generateClickToken,

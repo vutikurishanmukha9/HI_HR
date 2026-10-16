@@ -4,7 +4,7 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-import { TrackingStats, TrackingDetail, PaginationMeta, Recipient, SavedTemplate, DomainMxResult } from '../types';
+import { TrackingStats, TrackingDetail, PaginationMeta, CampaignOption, Recipient, SavedTemplate, DomainMxResult } from '../types';
 
 // Configuration
 const CONFIG = {
@@ -434,8 +434,21 @@ class ApiClient {
                 summary: TrackingStats;
                 details: TrackingDetail[];
                 pagination: PaginationMeta;
+                campaigns?: CampaignOption[];
             };
         }>(`/track/details?${params.toString()}`, {
+            method: 'GET',
+        });
+    }
+
+    /**
+     * Get all outreach campaigns for filter dropdown
+     */
+    async getTrackingCampaigns() {
+        return this.request<{
+            success: boolean;
+            data: CampaignOption[];
+        }>('/track/campaigns', {
             method: 'GET',
         });
     }

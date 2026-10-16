@@ -58,17 +58,18 @@ const AnalyticsDashboard: React.FC = () => {
 
                 <div className="flex items-center gap-2.5 w-full sm:w-auto">
                     {/* Campaign Filter */}
-                    <div className="relative flex-1 sm:flex-none sm:w-64">
+                    <div className="relative flex-1 sm:flex-none sm:w-80">
                         <select
                             value={selectedCampaign}
                             onChange={(e) => setSelectedCampaign(e.target.value)}
-                            className="input py-2 text-xs bg-white input-icon-right !pr-9 appearance-none cursor-pointer"
+                            className="input py-2 text-xs bg-white input-icon-right !pr-9 appearance-none cursor-pointer rounded-none border-border-strong hover:border-ink-muted focus:border-ink transition-colors"
                             style={{ paddingRight: '2.25rem' }}
+                            title="Filter analytics by outreach campaign"
                         >
                             <option value="">All Outreach Campaigns</option>
                             {availableCampaigns.map(camp => (
-                                <option key={camp} value={camp}>
-                                    {camp.substring(0, 30)}{camp.length > 30 ? '...' : ''}
+                                <option key={camp.id} value={camp.id} title={camp.subject || camp.label}>
+                                    {camp.label}
                                 </option>
                             ))}
                         </select>

@@ -74,6 +74,19 @@ export interface PaginationMeta {
 }
 
 /**
+ * Outreach Campaign option item for filter dropdowns
+ */
+export interface CampaignOption {
+  id: string;
+  label: string;
+  subject?: string;
+  sentAt?: string;
+  totalCount?: number;
+  sentCount?: number;
+  failedCount?: number;
+}
+
+/**
  * Saved email template item
  */
 export interface SavedTemplate {

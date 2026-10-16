@@ -57,8 +57,8 @@ const TrackingTable: React.FC<TrackingTableProps> = ({ details, pagination, isLo
                                         {row.subject || 'Cold Outreach Email'}
                                     </div>
                                     {row.campaignId && (
-                                        <div className="text-[10px] text-ink-muted font-mono truncate max-w-[180px]">
-                                            ID: {row.campaignId.substring(0, 16)}...
+                                        <div className="text-[10px] text-ink-muted font-mono truncate max-w-[180px]" title={`Campaign Reference: ${row.campaignId}`}>
+                                            Batch #{row.campaignId.substring(0, 8)}
                                         </div>
                                     )}
                                 </td>

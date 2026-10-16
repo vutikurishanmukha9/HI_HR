@@ -1,9 +1,49 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import apiClient from '../services/api';
-import { TrackingStats, TrackingDetail, PaginationMeta } from '../types';
+import { TrackingStats, TrackingDetail, PaginationMeta, CampaignOption } from '../types';
 
 interface UseAnalyticsOptions {
     autoRefreshInterval?: number; // In milliseconds, 0 to disable
+}
+
+function deriveCampaignOptions(details: TrackingDetail[]): CampaignOption[] {
+    const map = new Map<string, { id: string; subject?: string; sentAt?: string; count: number }>();
+    details.forEach(d => {
+        if (!d.campaignId) return;
+        const existing = map.get(d.campaignId);
+        if (!existing) {
+            map.set(d.campaignId, {
+                id: d.campaignId,
+                subject: d.subject,
+                sentAt: d.sentAt,
+                count: 1
+            });
+        } else {
+            existing.count += 1;
+            if (!existing.subject && d.subject) existing.subject = d.subject;
+            if (d.sentAt && (!existing.sentAt || new Date(d.sentAt) > new Date(existing.sentAt))) {
+                existing.sentAt = d.sentAt;
+            }
+        }
+    });
+
+    return Array.from(map.values()).map((c, i, arr) => {
+        const dateObj = c.sentAt ? new Date(c.sentAt) : null;
+        const dateStr = dateObj && !isNaN(dateObj.getTime())
+            ? dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            : '';
+        let subj = (c.subject || '').trim() || `Campaign #${arr.length - i}`;
+        if (subj.length > 34) subj = subj.substring(0, 34) + '...';
+        const countSuffix = `${c.count} ${c.count === 1 ? 'email' : 'emails'}`;
+        const label = dateStr ? `${subj} (${dateStr} · ${countSuffix})` : `${subj} (${countSuffix})`;
+        return {
+            id: c.id,
+            label,
+            subject: c.subject,
+            sentAt: c.sentAt,
+            totalCount: c.count
+        };
+    });
 }
 
 export function useAnalytics(options: UseAnalyticsOptions = { autoRefreshInterval: 60000 }) {
@@ -18,9 +58,8 @@ export function useAnalytics(options: UseAnalyticsOptions = { autoRefreshInterva
     const [limit, setLimit] = useState<number>(10);
     const [selectedCampaign, setSelectedCampaign] = useState<string>('');
 
-    // Available campaigns for filtering (derived from details or fetched separately)
-    // For now, we'll derive it from the fetched data, though a dedicated endpoint would be better for scale
-    const [availableCampaigns, setAvailableCampaigns] = useState<string[]>([]);
+    // Available campaigns for filtering with human-readable labels
+    const [availableCampaigns, setAvailableCampaigns] = useState<CampaignOption[]>([]);
 
     const fetchAnalytics = useCallback(async (silent = false) => {
         if (!silent) setIsLoading(true);
@@ -39,18 +78,17 @@ export function useAnalytics(options: UseAnalyticsOptions = { autoRefreshInterva
                 setDetails(response.data.details);
                 setPagination(response.data.pagination);
 
-                // Extract unique campaigns for the filter dropdown if we don't have them
-                // Note: In a real production app with thousands of campaigns, we'd want a separate endpoint for this
-                const uniqueCampaigns = Array.from(new Set(
-                    response.data.details
-                        .map(d => d.campaignId)
-                        .filter(Boolean) as string[]
-                ));
-
-                setAvailableCampaigns(prev => {
-                    const combined = new Set([...prev, ...uniqueCampaigns]);
-                    return Array.from(combined);
-                });
+                if (response.data.campaigns && response.data.campaigns.length > 0) {
+                    setAvailableCampaigns(response.data.campaigns);
+                } else {
+                    const derived = deriveCampaignOptions(response.data.details);
+                    setAvailableCampaigns(prev => {
+                        const merged = new Map<string, CampaignOption>();
+                        prev.forEach(c => merged.set(c.id, c));
+                        derived.forEach(c => merged.set(c.id, c));
+                        return Array.from(merged.values());
+                    });
+                }
             } else {
                 setError('Failed to fetch analytics data');
             }
